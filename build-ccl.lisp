@@ -2,7 +2,7 @@
 (asdf:load-system :2x0ng)
 (ccl:save-application "2x0ng.exe" 
 		      :prepend-kernel t
-		      :application-class :gui 
+		      :application-type :gui 
 		      :toplevel-function '2x0ng:2x0ng)
 
 
