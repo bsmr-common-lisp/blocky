@@ -1155,9 +1155,9 @@ name PROJECT. Returns the pathname if found, otherwise nil."
      (loop 
        for dir in dirs for path
 	 = (cl-fad:directory-exists-p 
-	    (cl-fad:merge-pathnames-as-directory
-	     dir (cl-fad:pathname-as-directory 
-		  (project-directory-name project))))
+	    (make-pathname
+	     :defaults (cl-fad:pathname-as-directory dir)
+	     :name (project-directory-name project)))
        when path return path)
      (prog1 nil
        (message "Cannot find project ~s in paths ~S. Try checking your *PROJECTS-DIRECTORIES* settings in the BLOCKY-INIT.LISP configuration file. Continuing..."
