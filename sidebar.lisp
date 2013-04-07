@@ -115,12 +115,6 @@
 (define-method can-pick sidebar () t)
 (define-method draw-hover sidebar ())
 
-(defun duplicate-safely (thing)
-  (let ((dupe (duplicate thing)))
-    (prog1 dupe
-      (setf (%quadtree-node dupe) nil)
-      (setf (%parent dupe) nil))))
-
 (define-method pick sidebar (&optional nodup)
   (let ((x (window-pointer-x))
 	(y (window-pointer-y))

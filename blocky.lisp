@@ -70,9 +70,10 @@ formatted-line-width find-buffer *clipboard* formatted-line-height
 formatted-string-height formatted-string-width get-color create-image
 draw-image blocky edit define-prototype has-field *target* with-target
 define-buffer set-field-options *user-joystick-profile*
-field-option-value index-resource *default-joystick-profile*
-joystick-profile visit find-project-path index-project image-height
-image-width load-image-resource load-lisp-resource *executable*
+*garbage-buffers* field-option-value index-resource
+*default-joystick-profile* joystick-profile visit find-project-path
+index-project image-height image-width load-image-resource
+load-lisp-resource *executable* *combine-buffers-destructively*
 *screen-height* cursor *screen-width* blockyp *nominal-screen-width*
 *nominal-screen-height* *gl-screen-width* *gl-screen-height*
 *message-function* dash holding-shift get-button-index

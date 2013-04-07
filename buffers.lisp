@@ -615,7 +615,7 @@ slowdown. See also quadtree.lisp")
     (when objects
       (setf *clipboard* (new 'buffer))
       (dolist (object objects)
-	(let ((duplicate (duplicate object)))
+	(let ((duplicate (duplicate-safely object)))
 	  ;; don't keep references to anything in the (current-buffer)
 	  (clear-buffer-data duplicate)
 	  (add-object *clipboard* duplicate))))))
@@ -632,7 +632,7 @@ slowdown. See also quadtree.lisp")
 	  (add-object *clipboard* object))))))
 
 (defun paste-from (self source &optional (dx 0) (dy 0))
-  (dolist (object (mapcar #'duplicate (get-objects source)))
+  (dolist (object (mapcar #'duplicate-safely (get-objects source)))
     (with-fields (x y) object
       (clear-buffer-data object)
       (with-buffer self
@@ -705,12 +705,29 @@ slowdown. See also quadtree.lisp")
     (with-new-buffer 
       (paste-from (current-buffer) buffer dx dy))))
 
+(define-method destroy buffer ()
+  (with-fields (objects inputs) self
+    (loop for thing being the hash-keys of objects do
+      (destroy thing)
+      (remhash thing objects))
+    (mapc #'destroy inputs)
+    (setf %inputs nil)
+    (block%destroy self)))
+
+(defparameter *combine-buffers-destructively* nil)
+
 (defun combine (buffer1 buffer2)
   (with-new-buffer 
     (when (and buffer1 buffer2)
-      (dolist (object (nconc (get-objects buffer1)
-			     (get-objects buffer2)))
-	(add-object (current-buffer) object)))))
+      (let ((all-objects (nconc (get-objects buffer1)
+				(get-objects buffer2))))
+	(dolist (object all-objects)
+	  (add-object (current-buffer) 
+		      (duplicate-safely object)))
+	(when *combine-buffers-destructively*
+	  (destroy buffer1)
+	  (destroy buffer2)))
+      (current-buffer))))
 
 (define-method scale buffer (sx &optional sy)
   (let ((objects (get-objects self)))

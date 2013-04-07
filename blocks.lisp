@@ -144,6 +144,12 @@ either a symbol naming the field, or a list of the form (SYMBOL
 	  (plist-to-descriptors args)
 	  args))))
 
+(defun duplicate-safely (thing)
+  (let ((dupe (duplicate thing)))
+    (prog1 dupe
+      (setf (field-value :quadtree-node dupe) nil)
+      (setf (field-value :parent dupe) nil))))
+
 (defparameter *block-categories*
   '(:system :motion :event :message :looks :sound :structure :data :button
     :expression :menu :hover :control :parameters :comment :sensing :operators :variables)
@@ -268,10 +274,13 @@ initialized with BLOCKS as inputs."
     (resize-to-image self))
   (setf %x 0 %y 0))
 
+(defun destroy-maybe (x)
+  (when (blockyp x) (destroy x)))
+
 (define-method destroy block ()
   "Throw away this block."
-  (mapc #'destroy %inputs)
-  (mapc #'destroy %tasks)
+  (mapc #'destroy-maybe %inputs)
+  (mapc #'destroy-maybe %tasks)
   (when %halo (destroy %halo))
   (when %parent 
     (unplug-from-parent self))
@@ -279,7 +288,10 @@ initialized with BLOCKS as inputs."
   (setf %garbagep t)
   (when %quadtree-node 
     (quadtree-delete self %quadtree-node))
-  (remove-object-from-database self))
+  (let (uuid (find-uuid self))
+    (remove-object-from-database self)
+    (prog1 t
+      (assert (not (find-object uuid :no-error))))))
 
 (define-method dismiss block ()
   ;; (if (windowp %parent)
@@ -1533,8 +1545,8 @@ The following block fields will control sprite drawing:
   (quadtree-delete-maybe self)
   (setf %height height)
   (setf %width width)
-  (quadtree-insert-maybe self)
-  (invalidate-layout self))
+  (quadtree-insert-maybe self))
+;;  (invalidate-layout self))
 
 (define-method layout block () 
   (when %image 

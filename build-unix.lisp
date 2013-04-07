@@ -25,8 +25,8 @@
 				      0)
 			  :executable t)
 
-;; Close terminal window...
-;; (with-open-file (exe #p"path/to/game.exe" :direction :io :element-type '(unsigned-byte 8))
+;; ;; Close terminal window...
+;; (with-open-file (exe #p"./2x0ng.exe" :direction :io :element-type '(unsigned-byte 8))
 ;;   (file-position exe #x3c)
 ;;   (let* ((b0 (read-byte exe))
 ;; 	 (b1 (read-byte exe))

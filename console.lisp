@@ -643,7 +643,16 @@ the BUTTON. STATE should be either 1 (on) or 0 (off)."
      (add-hook '*next-update-hook*
 	       #'(lambda () ,@body))))
 		 
+(defvar *garbage-buffers* nil)
+
+(defun delete-garbage-buffers-maybe ()
+  (dolist (buffer *garbage-buffers*)
+    (stop buffer)
+    (destroy buffer))
+  (setf *garbage-buffers* nil))
+
 (defun update-blocks ()
+  (delete-garbage-buffers-maybe)
   (run-hook '*next-update-hook*)
   (setf *next-update-hook* nil)
   (dolist (block *blocks*)

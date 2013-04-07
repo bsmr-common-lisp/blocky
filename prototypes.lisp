@@ -326,8 +326,11 @@ extended argument list ARGLIST."
 	object))
 
 (defun remove-object-from-database (object)
-  (assert (hash-table-p *database*))
-  (remhash (find-uuid object) *database*))
+  (let ((total (hash-table-count *database*)))
+    (assert (hash-table-p *database*))
+    (assert (plusp total))
+    (remhash (find-uuid object) *database*)))
+;    (assert (> total (hash-table-count *database*)))))
 
 (defun find-object-by-uuid (uuid &optional noerror)
   (or (gethash uuid *database*)
