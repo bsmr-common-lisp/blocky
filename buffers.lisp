@@ -973,8 +973,9 @@ slowdown. See also quadtree.lisp")
 		(remhash object %objects)))
 	  ;; detect collisions
 	  (loop for object being the hash-values in objects do
-	    (unless (eq :passive (field-value :collision-type object))
-	      (quadtree-collide object)))
+	    (when (blockyp object)
+	      (unless (eq :passive (field-value :collision-type object))
+		(quadtree-collide object))))
 	  ;; update window movement
 	  (let ((thing (or 
 			%followed-object
