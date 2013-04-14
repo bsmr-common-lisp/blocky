@@ -69,7 +69,7 @@ create blocky transform-field-reference define-block *screen-height*
 formatted-line-width find-buffer *clipboard* formatted-line-height
 formatted-string-height formatted-string-width get-color create-image
 draw-image blocky edit define-prototype has-field *target* with-target
-define-buffer set-field-options *user-joystick-profile*
+define-buffer set-field-options *user-joystick-profile* paste-into
 *garbage-buffers* field-option-value index-resource
 *default-joystick-profile* joystick-profile visit find-project-path
 index-project image-height image-width load-image-resource

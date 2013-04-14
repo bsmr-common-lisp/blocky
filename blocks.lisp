@@ -284,6 +284,7 @@ initialized with BLOCKS as inputs."
   (when %halo (destroy %halo))
   (when %parent 
     (unplug-from-parent self))
+  (destroy-events self)
   (remove-thing-maybe (current-buffer) self)
   (setf %garbagep t)
   (when %quadtree-node 
@@ -605,6 +606,11 @@ See `keys.lisp' for the full table of key and modifier symbols.
       (dolist (entry default-events)
 	(apply #'bind-event self entry)))))
 
+(define-method destroy-events block ()
+  (when %events
+    (loop for event being the hash-values of %events do 
+      (destroy-maybe event))))
+
 (defun bind-event-to-text-insertion (self key mods text)
   (bind-event-to-task self key mods 
 			 (new 'task :insert-string self (list text))))
@@ -786,17 +792,17 @@ See `keys.lisp' for the full table of key and modifier symbols.
   (pushnew (find-uuid task) %tasks :test 'equal))
 
 (define-method remove-task block (task)
-  (assert (blockyp task))
-  (setf %tasks (delete task %tasks :test 'equal))
-  (destroy task))
-
+  (destroy-maybe task)
+  (setf %tasks (delete task %tasks :test 'equal)))
+ 
 (define-method run block ()) ;; stub for with-turtle
 
 (define-method run-tasks block ()
   ;; don't run tasks on objects that got deleted during UPDATE
   (when %quadtree-node
-    ;; run tasks while they return non-nil 
-    (setf %tasks (delete-if-not #'running %tasks))))
+    (dolist (task %tasks)
+      (unless (running task)
+	(remove-task self task)))))
 
 (define-method update block ()
   "Update the simulation one step forward in time."
@@ -1832,13 +1838,12 @@ Note that the center-points of the objects are used for comparison."
   (with-fields (method target arguments clock finished) self
     (cond 
       ;; if finished, quit now.
-      (finished (prog1 nil (destroy self)))
+      (finished nil)
       ;; countdown exists and is finished.
       ((and (integerp clock)
 	    (zerop clock))
        (prog1 nil 
 	 (evaluate self)
-	 (destroy self)
 	      ))
       ;; countdown not finished. tell manager to keep running, 
       ;; but don't evaluate at this time

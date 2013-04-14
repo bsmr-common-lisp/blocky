@@ -20,6 +20,8 @@
 
 (in-package :blocky)
 
+(defparameter *combine-buffers-destructively* t)
+
 (define-block buffer
   (name :initform nil)
   (variables :initform nil 
@@ -613,6 +615,7 @@ slowdown. See also quadtree.lisp")
   (let ((objects (or objects0 (get-selection self))))
     (clear-halos self)
     (when objects
+      (destroy-maybe *clipboard*)
       (setf *clipboard* (new 'buffer))
       (dolist (object objects)
 	(let ((duplicate (duplicate-safely object)))
@@ -625,6 +628,7 @@ slowdown. See also quadtree.lisp")
     (let ((objects (or objects0 (get-selection self))))
       (when objects
 	(clear-halos self)
+	(destroy-maybe *clipboard*)
 	(setf *clipboard* (new 'buffer))
 	(dolist (object objects)
 	  (with-quadtree (%quadtree self)
@@ -640,6 +644,10 @@ slowdown. See also quadtree.lisp")
 	  (add-object self object)
 	  (move-to object (+ x dx) (+ y dy)))))))
   
+(defun paste-into (self source &optional (dx 0) (dy 0))
+  (paste-from self source dx dy)
+  (destroy source))
+
 (defun paste (&optional (self (current-buffer)) (dx 0) (dy 0))
   (paste-from self *clipboard* dx dy))
   
@@ -703,18 +711,18 @@ slowdown. See also quadtree.lisp")
   (when buffer
     (assert (and (numberp dx) (numberp dy)))
     (with-new-buffer 
-      (paste-from (current-buffer) buffer dx dy))))
+      (paste-from (current-buffer) buffer dx dy)
+      (destroy buffer))))
 
 (define-method destroy buffer ()
   (with-fields (objects inputs) self
     (loop for thing being the hash-keys of objects do
       (destroy thing)
       (remhash thing objects))
-    (mapc #'destroy inputs)
+    (mapc #'destroy-maybe inputs)
+    (mapc #'destroy-maybe %tasks)
     (setf %inputs nil)
     (block%destroy self)))
-
-(defparameter *combine-buffers-destructively* nil)
 
 (defun combine (buffer1 buffer2)
   (with-new-buffer 
@@ -724,10 +732,9 @@ slowdown. See also quadtree.lisp")
 	(dolist (object all-objects)
 	  (add-object (current-buffer) 
 		      (duplicate-safely object)))
-	(when *combine-buffers-destructively*
-	  (destroy buffer1)
-	  (destroy buffer2)))
-      (current-buffer))))
+	(destroy buffer1)
+	(destroy buffer2)
+	(current-buffer)))))
 
 (define-method scale buffer (sx &optional sy)
   (let ((objects (get-objects self)))
@@ -736,8 +743,6 @@ slowdown. See also quadtree.lisp")
 	(move-to object (* x sx) (* y (or sy sx)))
 	(resize object (* width sx) (* height (or sy sx))))))
   (trim self))
-
-;(define-method destroy-region buffer (bounding-box))
 
 (defun vertical-extent (buffer)
   (if (or (null buffer)
@@ -805,7 +810,8 @@ slowdown. See also quadtree.lisp")
 (defun with-border (border buffer)
   (with-fields (height width) buffer
     (with-new-buffer 
-      (paste-from (current-buffer) buffer border border) 
+      (paste-from (current-buffer) buffer border border)
+      (destroy buffer)
       (resize (current-buffer)
 	      (+ height (* border 2))
 	      (+ width (* border 2))))))
