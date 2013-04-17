@@ -100,9 +100,9 @@ the object when the method is run.")
 	  (float (/ (+ left right) 2)) bottom)))
 
 (defun quadtree-process (bounding-box processor &optional (node *quadtree*))
-  (assert (quadtree-p node))
-  (assert (valid-bounding-box bounding-box))
-  (assert (functionp processor))
+  ;; (assert (quadtree-p node))
+  ;; (assert (valid-bounding-box bounding-box))
+  ;; (assert (functionp processor))
   (when (bounding-box-contains (quadtree-bounding-box node) bounding-box)
     (when (not (leafp node))
       (let ((*quadtree-depth* (1+ *quadtree-depth*)))
@@ -113,8 +113,8 @@ the object when the method is run.")
     (funcall processor node)))
 
 (defun build-quadtree (bounding-box0 &optional (depth *default-quadtree-depth*))
-  (assert (plusp depth))
-  (assert (valid-bounding-box bounding-box0))
+  ;; (assert (plusp depth))
+  ;; (assert (valid-bounding-box bounding-box0))
   (let ((bounding-box (mapcar #'float bounding-box0)))
     (decf depth)
     (if (zerop depth)
@@ -128,8 +128,8 @@ the object when the method is run.")
 (defun quadtree-search (bounding-box &optional (node *quadtree*))
   "Return the smallest quadrant enclosing BOUNDING-BOX at or below
 NODE, if any."
-  (assert (quadtree-p node))
-  (assert (valid-bounding-box bounding-box))
+  ;; (assert (quadtree-p node))
+  ;; (assert (valid-bounding-box bounding-box))
   ;; (message "~A ~A Searching quadrant ~S for bounding box ~S" 
   ;; 	   *quadtree-depth* (make-string (1+ *quadtree-depth*) :initial-element (character "."))
   ;; 	   (quadtree-bounding-box node) bounding-box)
@@ -195,8 +195,8 @@ NODE, if any."
     (quadtree-delete object tree)))
 
 (defun quadtree-map-collisions (bounding-box processor &optional (tree *quadtree*))
-  (assert (functionp processor))
-  (assert (valid-bounding-box bounding-box))
+  ;; (assert (functionp processor))
+  ;; (assert (valid-bounding-box bounding-box))
   (quadtree-process
    bounding-box
    #'(lambda (node)
@@ -219,7 +219,7 @@ NODE, if any."
 
 (defun find-bounding-box (objects)
   ;; calculate the bounding box of a list of objects
-  (assert (not (null objects)))
+  ;; (assert (not (null objects)))
   (labels ((left (thing) (field-value :x thing))
 	   (right (thing) (+ (field-value :x thing)
 			     (field-value :width thing)))
