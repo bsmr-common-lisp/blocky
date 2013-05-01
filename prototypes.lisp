@@ -524,7 +524,8 @@ method call that references a non-existent field will signal a
 ;; values. 
 
 (defun plist-fref (f key)
-;  (declare (type list f))
+  (declare ;; (type list f)
+	   (optimize (speed 3) (safety 0)))
   (let ((v *lookup-failure*))
     (loop while f do
       (if (eq key (first f))
