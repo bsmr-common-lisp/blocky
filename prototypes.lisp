@@ -523,9 +523,18 @@ method call that references a non-existent field will signal a
 ;; Next come the main user-level functions for setting/getting field
 ;; values. 
 
+(defun plist-fref (f key)
+;  (declare (type list f))
+  (let ((v *lookup-failure*))
+    (loop while f do
+      (if (eq key (first f))
+	  (progn (setf v (second f)) (setf f nil))
+	  (setf f (rest (rest f)))))
+    v))
+
 (defun fref (fields key)
   (etypecase fields
-    (list (getf fields key *lookup-failure*))
+    (list (plist-fref fields key))
     (hash-table (gethash key fields *lookup-failure*))))
 
 (defun set-fref (fields key value)
