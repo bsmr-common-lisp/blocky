@@ -524,14 +524,21 @@ method call that references a non-existent field will signal a
 ;; values. 
 
 (defun plist-fref (f key)
-  (declare ;; (type list f)
-	   (optimize (speed 3) (safety 0)))
-  (let ((v *lookup-failure*))
-    (loop while f do
-      (if (eq key (first f))
-	  (progn (setf v (second f)) (setf f nil))
-	  (setf f (rest (rest f)))))
-    v))
+  (declare (optimize (speed 3)) (list f))
+  (loop (if (eq key (first f)) (return)
+	    (if (null f) (return)
+		(setf f (the list (rest (the list (rest f))))))))
+  (if f (second f) *lookup-failure*))
+
+;; (defun plist-fref (f key)
+;;   ;; (declare ;; (type list f)
+;;   ;; 	   (optimize (speed 3) (safety 0)))
+;;   (let ((v *lookup-failure*))
+;;     (loop while f do
+;;       (if (eq key (first f))
+;; 	  (progn (setf v (second f)) (setf f nil))
+;; 	  (setf f (rest (rest f)))))
+;;     v))
 
 (defun fref (fields key)
   (etypecase fields
