@@ -916,10 +916,10 @@ slowdown. See also quadtree.lisp")
 	    (draw-box 0 0 width height
 		      :color background-color)))
       ;; now draw the object layer
-      (let ((box (multiple-value-list (window-bounding-box self))))
+      (multiple-value-bind (top left right bottom) (window-bounding-box self)
 	(loop for object being the hash-values in objects do
 	  ;; only draw onscreen objects
-	  (when (colliding-with-bounding-box object box)
+	  (when (colliding-with-bounding-box object top left right bottom)
 	    (draw object))))
       ;; possibly redraw cursor to ensure visibility.
       (when (and (blockyp %cursor) %redraw-cursor)

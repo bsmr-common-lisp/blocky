@@ -1600,9 +1600,10 @@ and MOUSE-Y identify a point inside the block (or input block.)"
 (define-method bounding-box block ()
   "Return this object's bounding box as multiple values.
 The order is (TOP LEFT RIGHT BOTTOM)."
-  (when (null %height)
-    (resize-to-image self))
-  (values %y %x (+ %x %width) (+ %y %height)))
+  (with-field-values (x y width height) self
+    (when (null height)
+      (resize-to-image self))
+    (values y x (+ x width) (+ y height))))
 
 (define-method center-point block ()
   "Return this object's center point as multiple values X and Y."
@@ -1671,25 +1672,19 @@ The order is (TOP LEFT RIGHT BOTTOM)."
   (with-fields (x y width height) self
     (point-in-rectangle-p x y width height o-top o-left o-width o-height)))
 
-(define-method colliding-with-bounding-box block (bounding-box)
+(define-method colliding-with-bounding-box block (top left right bottom)
   ;; you must pass arguments in Y X order since this is TOP then LEFT
   (with-fields (x y width height) self
-    (destructuring-bind (top left right bottom) bounding-box
-      (point-in-rectangle-p x y width height top left (- right left) (- bottom top)))))
+    (point-in-rectangle-p x y width height top left (- right left) (- bottom top))))
 
-(define-method contained-in-bounding-box block (bounding-box)
-  (bounding-box-contains bounding-box (multiple-value-list (bounding-box self))))
+;; (define-method contained-in-bounding-box block (bounding-box)
+;;   (bounding-box-contains bounding-box (multiple-value-list (bounding-box self))))
 
 (define-method colliding-with block (thing)
   "Return non-nil if this block collides with THING."
-  (multiple-value-bind (top left right bottom)
-      (bounding-box self)
-    (multiple-value-bind (top0 left0 right0 bottom0)
-	(bounding-box thing)
-      (and (<= left right0)
-	   (>= right left0)
-	   (<= top bottom0)
-	   (>= bottom top0)))))
+  (multiple-value-bind (top left right bottom) 
+      (bounding-box thing)
+    (colliding-with-bounding-box self top left right bottom)))
 
 (define-method direction-to-thing block (thing)
   "Return a direction keyword approximating the direction to THING."

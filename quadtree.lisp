@@ -39,7 +39,8 @@ the object when the method is run.")
 (defparameter *default-quadtree-depth* 9) 
  
 (defstruct quadtree 
-  objects bounding-box level
+  objects level
+  top left right bottom
   southwest northeast northwest southeast)
 
 (defmethod print-object ((tree blocky::quadtree) stream)
@@ -57,6 +58,12 @@ the object when the method is run.")
 	   (<= left0 left1)
 	   (>= right0 right1)
 	   (>= bottom0 bottom1)))))
+
+(defun quadtree-contains (quadtree top left right bottom)
+  (and (<= (quadtree-top quadtree) top)
+       (<= (quadtree-left quadtree) left)
+       (>= (quadtree-right quadtree) right)
+       (>= (quadtree-bottom quadtree) bottom)))
 
 (defun scale-bounding-box (box factor)
   (destructuring-bind (top left right bottom) box
@@ -76,84 +83,80 @@ the object when the method is run.")
 	 (and (<= left right) (<= top bottom)))))
 
 (defun northeast-quadrant (bounding-box)
-  (assert (valid-bounding-box bounding-box))
+;  (assert (valid-bounding-box bounding-box))
   (destructuring-bind (top left right bottom) bounding-box
     (list top (float (/ (+ left right) 2))
 	  right (float (/ (+ top bottom) 2)))))
 
 (defun southeast-quadrant (bounding-box)
-  (assert (valid-bounding-box bounding-box))
+;  (assert (valid-bounding-box bounding-box))
   (destructuring-bind (top left right bottom) bounding-box
     (list (float (/ (+ top bottom) 2)) (float (/ (+ left right) 2))
 	  right bottom)))
 
 (defun northwest-quadrant (bounding-box)
-  (assert (valid-bounding-box bounding-box))
+;  (assert (valid-bounding-box bounding-box))
   (destructuring-bind (top left right bottom) bounding-box
     (list top left
 	  (float (/ (+ left right) 2)) (float (/ (+ top bottom) 2)))))
 
 (defun southwest-quadrant (bounding-box)
-  (assert (valid-bounding-box bounding-box))
+;  (assert (valid-bounding-box bounding-box))
   (destructuring-bind (top left right bottom) bounding-box
     (list (float (/ (+ top bottom) 2)) left
 	  (float (/ (+ left right) 2)) bottom)))
 
-(defun quadtree-process (bounding-box processor &optional (node *quadtree*))
-  ;; (assert (quadtree-p node))
-  ;; (assert (valid-bounding-box bounding-box))
-  ;; (assert (functionp processor))
-  (when (bounding-box-contains (quadtree-bounding-box node) bounding-box)
+(defun quadtree-process (top left right bottom processor &optional (node *quadtree*))
+  (when (quadtree-contains node top left right bottom)
     (when (not (leafp node))
       (let ((*quadtree-depth* (1+ *quadtree-depth*)))
-	(quadtree-process bounding-box processor (quadtree-northwest node))
-	(quadtree-process bounding-box processor (quadtree-northeast node))
-	(quadtree-process bounding-box processor (quadtree-southwest node))
-	(quadtree-process bounding-box processor (quadtree-southeast node))))
+	(quadtree-process top left right bottom processor (quadtree-northwest node))
+	(quadtree-process top left right bottom processor (quadtree-northeast node))
+	(quadtree-process top left right bottom processor (quadtree-southwest node))
+	(quadtree-process top left right bottom processor (quadtree-southeast node))))
     (funcall processor node)))
 
 (defun build-quadtree (bounding-box0 &optional (depth *default-quadtree-depth*))
   ;; (assert (plusp depth))
   ;; (assert (valid-bounding-box bounding-box0))
   (let ((bounding-box (mapcar #'float bounding-box0)))
-    (decf depth)
-    (if (zerop depth)
-	(make-quadtree :bounding-box bounding-box)
-	(make-quadtree :bounding-box bounding-box
-		       :northwest (build-quadtree (northwest-quadrant bounding-box) depth)
-		       :northeast (build-quadtree (northeast-quadrant bounding-box) depth)
-		       :southwest (build-quadtree (southwest-quadrant bounding-box) depth)
-		       :southeast (build-quadtree (southeast-quadrant bounding-box) depth)))))
+    (destructuring-bind (top left right bottom) bounding-box
+      (decf depth)
+      (if (zerop depth)
+	  (make-quadtree :top top :left left :right right :bottom bottom)
+	  (make-quadtree :top top :left left :right right :bottom bottom
+			 :northwest (build-quadtree (northwest-quadrant bounding-box) depth)
+			 :northeast (build-quadtree (northeast-quadrant bounding-box) depth)
+			 :southwest (build-quadtree (southwest-quadrant bounding-box) depth)
+			 :southeast (build-quadtree (southeast-quadrant bounding-box) depth))))))
 
-(defun quadtree-search (bounding-box &optional (node *quadtree*))
-  "Return the smallest quadrant enclosing BOUNDING-BOX at or below
+(defun quadtree-search (top left right bottom &optional (node *quadtree*))
+  "Return the smallest quadrant enclosing TOP LEFT RIGHT BOTTOM at or below
 NODE, if any."
   ;; (assert (quadtree-p node))
-  ;; (assert (valid-bounding-box bounding-box))
+  ;; (assert (valid-top left right bottom top left right bottom))
   ;; (message "~A ~A Searching quadrant ~S for bounding box ~S" 
   ;; 	   *quadtree-depth* (make-string (1+ *quadtree-depth*) :initial-element (character "."))
-  ;; 	   (quadtree-bounding-box node) bounding-box)
-  (when (bounding-box-contains (quadtree-bounding-box node) bounding-box)
+  ;; 	   (quadtree-top left right bottom node) top left right bottom)
+  (when (quadtree-contains node top left right bottom)
     ;; ok, it's in the overall bounding-box.
     (if (leafp node)
-	;; there aren't any quadrants to search.
+	;; there aren't any quadrants to search. stop here.
 	node
 	(or
 	 ;; search the quadrants.
 	 (let ((*quadtree-depth* (1+ *quadtree-depth*)))
-	   (or (quadtree-search bounding-box (quadtree-northwest node))
-	       (quadtree-search bounding-box (quadtree-northeast node))
-	       (quadtree-search bounding-box (quadtree-southwest node))
-	       (quadtree-search bounding-box (quadtree-southeast node))))
+	   (or (quadtree-search top left right bottom (quadtree-northwest node))
+	       (quadtree-search top left right bottom (quadtree-northeast node))
+	       (quadtree-search top left right bottom (quadtree-southwest node))
+	       (quadtree-search top left right bottom (quadtree-southeast node))))
 	 ;; none of them are suitable. stay here
 	 node))))
 
 (defun quadtree-insert (object &optional (tree *quadtree*))
-  (let ((node0
-	  (quadtree-search 
-	   (multiple-value-list 
-	    (bounding-box object))
-	   tree)))
+  (let ((node0 
+	  (multiple-value-bind (top left right bottom) (bounding-box object)
+	    (quadtree-search top left right bottom tree))))
     (let ((node (or node0 tree)))
       ;; (message "Inserting ~S ~S"
       ;; 	       (get-some-object-name object) 
@@ -166,25 +169,25 @@ NODE, if any."
 	       :test 'eq)
       ;; save pointer to node so we can avoid searching when it's time
       ;; to delete (i.e. move) the object later.
-      (blocky:set-field-value :quadtree-node object node)
-      (assert (find (find-object object)
-		    (quadtree-objects node)
-		    :test 'eq)))))
+      (blocky:set-field-value :quadtree-node object node))))
+      ;; (assert (find (find-object object)
+      ;; 		    (quadtree-objects node)
+      ;; 		    :test 'eq)))))
 
 (defun quadtree-delete (object0 &optional (tree *quadtree*))
   (let ((object (find-object object0)))
     ;; grab the cached quadtree node
     (let ((node (or (field-value :quadtree-node object) tree)))
-      (assert node)
-      (assert (find object
-      		    (quadtree-objects node)
-      		    :test 'eq))
+      ;; (assert node)
+      ;; (assert (find object
+      ;; 		    (quadtree-objects node)
+      ;; 		    :test 'eq))
       (setf (quadtree-objects node)
 	    (delete object (quadtree-objects node) :test 'eq))
-      (set-field-value :quadtree-node object nil)
-      (assert (not (find object
-			 (quadtree-objects node)
-			 :test 'eq))))))
+      (set-field-value :quadtree-node object nil))))
+      ;; (assert (not (find object
+      ;; 			 (quadtree-objects node)
+      ;; 			 :test 'eq))))))
 
 (defun quadtree-insert-maybe (object &optional (tree *quadtree*))
   (when tree
@@ -194,28 +197,30 @@ NODE, if any."
   (when (and tree (field-value :quadtree-node object))
     (quadtree-delete object tree)))
 
-(defun quadtree-map-collisions (bounding-box processor &optional (tree *quadtree*))
+(defun quadtree-map-collisions (top left right bottom processor &optional (tree *quadtree*))
   ;; (assert (functionp processor))
   ;; (assert (valid-bounding-box bounding-box))
   (quadtree-process
-   bounding-box
+   top left right bottom
    #'(lambda (node)
        (dolist (object (quadtree-objects node))
-	 (when (colliding-with-bounding-box object bounding-box)
+	 (when (colliding-with-bounding-box object top left right bottom)
 	   (funcall processor object))))
    tree))
 
 (defun quadtree-collide (object &optional (tree *quadtree*))
-  (quadtree-map-collisions 
-   (multiple-value-list (bounding-box object))
-   #'(lambda (thing)
-       (when (and (blockyp thing) (blockyp object)
-		  (field-value :collision-type thing)
-		  (colliding-with object thing)
-		  (not (object-eq object thing)))
-	 (with-quadtree tree
-	   (collide object thing))))
-   tree))
+  (multiple-value-bind (top left right bottom) (bounding-box object)
+    (quadtree-map-collisions 
+     top left right bottom
+     #'(lambda (thing)
+	 (when (and (blockyp thing) 
+		    (blockyp object)
+		    (field-value :collision-type thing)
+		    (colliding-with object thing)
+		    (not (object-eq object thing)))
+	   (with-quadtree tree
+	     (collide object thing))))
+     tree)))
 
 (defun find-bounding-box (objects)
   ;; calculate the bounding box of a list of objects
@@ -241,23 +246,23 @@ NODE, if any."
       (set-field-value :quatree-node object nil)
       (quadtree-insert object quadtree))))
 
-(defun quadtree-show (tree &optional object)
-  (when tree
-      (let ((bounding-box (quadtree-bounding-box tree)))
-	(destructuring-bind (top left right bottom) bounding-box
-	  (if (null object)
-	      (draw-box (+ left 10) (+ top 10) (- right left 10) (- bottom top 10)
-			:color "magenta"
-			:alpha 0.1)
-	      (when (colliding-with-rectangle 
-		     object top left (- right left) (- bottom top))
-		(draw-box left top (- right left) (- bottom top)
-			  :color "cyan"
-			  :alpha 0.2)))))
-      (let ((*quadtree-depth* (1+ *quadtree-depth*)))
-	(quadtree-show (quadtree-northeast tree) object)
-	(quadtree-show (quadtree-northwest tree) object)
-	(quadtree-show (quadtree-southeast tree) object)
-	(quadtree-show (quadtree-southwest tree) object))))
+;; (defun quadtree-show (tree &optional object)
+;;   (when tree
+;;       (let ((bounding-box (quadtree-bounding-box tree)))
+;; 	(destructuring-bind (top left right bottom) bounding-box
+;; 	  (if (null object)
+;; 	      (draw-box (+ left 10) (+ top 10) (- right left 10) (- bottom top 10)
+;; 			:color "magenta"
+;; 			:alpha 0.1)
+;; 	      (when (colliding-with-rectangle 
+;; 		     object top left (- right left) (- bottom top))
+;; 		(draw-box left top (- right left) (- bottom top)
+;; 			  :color "cyan"
+;; 			  :alpha 0.2)))))
+;;       (let ((*quadtree-depth* (1+ *quadtree-depth*)))
+;; 	(quadtree-show (quadtree-northeast tree) object)
+;; 	(quadtree-show (quadtree-northwest tree) object)
+;; 	(quadtree-show (quadtree-southeast tree) object)
+;; 	(quadtree-show (quadtree-southwest tree) object))))
 
 ;;; quadtree.lisp ends here
