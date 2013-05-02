@@ -36,7 +36,7 @@ the object when the method is run.")
 
 (defvar *quadtree-depth* 0)
 
-(defparameter *default-quadtree-depth* 9) 
+(defparameter *default-quadtree-depth* 10) 
  
 (defstruct quadtree 
   objects level
@@ -60,10 +60,11 @@ the object when the method is run.")
 	   (>= bottom0 bottom1)))))
 
 (defun quadtree-contains (quadtree top left right bottom)
-  (and (<= (quadtree-top quadtree) top)
-       (<= (quadtree-left quadtree) left)
-       (>= (quadtree-right quadtree) right)
-       (>= (quadtree-bottom quadtree) bottom)))
+  (declare (single-float top left right bottom))
+  (and (<= (the single-float (quadtree-top quadtree)) top)
+       (<= (the single-float (quadtree-left quadtree)) left)
+       (>= (the single-float (quadtree-right quadtree)) right)
+       (>= (the single-float (quadtree-bottom quadtree)) bottom)))
 
 (defun scale-bounding-box (box factor)
   (destructuring-bind (top left right bottom) box
@@ -85,26 +86,26 @@ the object when the method is run.")
 (defun northeast-quadrant (bounding-box)
 ;  (assert (valid-bounding-box bounding-box))
   (destructuring-bind (top left right bottom) bounding-box
-    (list top (float (/ (+ left right) 2))
-	  right (float (/ (+ top bottom) 2)))))
+    (list top (cfloat (/ (+ left right) 2))
+	  right (cfloat (/ (+ top bottom) 2)))))
 
 (defun southeast-quadrant (bounding-box)
 ;  (assert (valid-bounding-box bounding-box))
   (destructuring-bind (top left right bottom) bounding-box
-    (list (float (/ (+ top bottom) 2)) (float (/ (+ left right) 2))
+    (list (cfloat (/ (+ top bottom) 2)) (cfloat (/ (+ left right) 2))
 	  right bottom)))
 
 (defun northwest-quadrant (bounding-box)
 ;  (assert (valid-bounding-box bounding-box))
   (destructuring-bind (top left right bottom) bounding-box
     (list top left
-	  (float (/ (+ left right) 2)) (float (/ (+ top bottom) 2)))))
+	  (cfloat (/ (+ left right) 2)) (cfloat (/ (+ top bottom) 2)))))
 
 (defun southwest-quadrant (bounding-box)
 ;  (assert (valid-bounding-box bounding-box))
   (destructuring-bind (top left right bottom) bounding-box
-    (list (float (/ (+ top bottom) 2)) left
-	  (float (/ (+ left right) 2)) bottom)))
+    (list (cfloat (/ (+ top bottom) 2)) left
+	  (cfloat (/ (+ left right) 2)) bottom)))
 
 (defun quadtree-process (top left right bottom processor &optional (node *quadtree*))
   (when (quadtree-contains node top left right bottom)
@@ -119,7 +120,7 @@ the object when the method is run.")
 (defun build-quadtree (bounding-box0 &optional (depth *default-quadtree-depth*))
   ;; (assert (plusp depth))
   ;; (assert (valid-bounding-box bounding-box0))
-  (let ((bounding-box (mapcar #'float bounding-box0)))
+  (let ((bounding-box (mapcar #'cfloat bounding-box0)))
     (destructuring-bind (top left right bottom) bounding-box
       (decf depth)
       (if (zerop depth)
