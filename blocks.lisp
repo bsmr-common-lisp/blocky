@@ -1600,15 +1600,20 @@ and MOUSE-Y identify a point inside the block (or input block.)"
 (define-method bounding-box block ()
   "Return this object's bounding box as multiple values.
 The order is (TOP LEFT RIGHT BOTTOM)."
+  (when (null %height)
+    (resize-to-image self))
   (with-field-values (x y width height) self
-    (when (null height)
-      (resize-to-image self))
-    (values y x (+ x width) (+ y height))))
+    (values 
+     (float y)
+     (float x)
+     (float (+ x width))
+     (float (+ y height)))))
 
 (define-method center-point block ()
   "Return this object's center point as multiple values X and Y."
   (multiple-value-bind (top left right bottom)
       (bounding-box self)
+    (declare (float top left right bottom) (optimize (speed 3)))
     (values (* 0.5 (+ left right))
 	    (* 0.5 (+ top bottom)))))
 
@@ -1652,35 +1657,35 @@ The order is (TOP LEFT RIGHT BOTTOM)."
   nil)
 
 (defun point-in-rectangle-p (x y width height o-top o-left o-width o-height)
-  (let ((o-right (+ o-left o-width))
-	(o-bottom (+ o-top o-height)))
-    (not (or 
-	  ;; is the top below the other bottom?
-	  (<= o-bottom y)
-	  ;; is bottom above other top?
-	  (<= (+ y height) o-top)
-	  ;; is right to left of other left?
-	  (<= (+ x width) o-left)
-	  ;; is left to right of other right?
-	  (<= o-right x)))))
+  (declare (float x y width height o-top o-left o-width o-height) (optimize (speed 3)))
+  (not (or 
+	;; is the top below the other bottom?
+	(<= (+ o-top o-height) y)
+	;; is bottom above other top?
+	(<= (+ y height) o-top)
+	;; is right to left of other left?
+	(<= (+ x width) o-left)
+	;; is left to right of other right?
+	(<= (+ o-left o-width) x))))
 
 (define-method touching-point block (x y)
   (within-extents x y %x %y (+ %x %width) (+ %y %height)))
 
 (define-method colliding-with-rectangle block (o-top o-left o-width o-height)
   ;; you must pass arguments in Y X order since this is TOP then LEFT
-  (with-fields (x y width height) self
-    (point-in-rectangle-p x y width height o-top o-left o-width o-height)))
+  (with-field-values (x y width height) self
+    (point-in-rectangle-p (float x) (float y) (float width) (float height) o-top o-left o-width o-height)))
 
-(define-method colliding-with-bounding-box block (top left right bottom)
+(defun colliding-with-bounding-box (self top left right bottom)
   ;; you must pass arguments in Y X order since this is TOP then LEFT
-  (with-fields (x y width height) self
-    (point-in-rectangle-p x y width height top left (- right left) (- bottom top))))
+  (with-field-values (x y width height) self
+    (point-in-rectangle-p (float x) (float y) (float width) (float height)
+			  top left (- right left) (- bottom top))))
 
 ;; (define-method contained-in-bounding-box block (bounding-box)
 ;;   (bounding-box-contains bounding-box (multiple-value-list (bounding-box self))))
 
-(define-method colliding-with block (thing)
+(defun colliding-with (self thing)
   "Return non-nil if this block collides with THING."
   (multiple-value-bind (top left right bottom) 
       (bounding-box thing)
