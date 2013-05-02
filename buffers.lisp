@@ -262,10 +262,10 @@
 (defun window-x () (%window-x (current-buffer)))
 
 (define-method window-bounding-box buffer ()
-  (values %window-y 
-	  %window-x
-	  (+ %window-x *gl-screen-width*)
-	  (+ %window-y *gl-screen-height*)))
+  (values (cfloat %window-y)
+	  (cfloat %window-x)
+	  (cfloat (+ %window-x *gl-screen-width*))
+	  (cfloat (+ %window-y *gl-screen-height*))))
 
 (define-method move-window-to buffer (x y &optional z)
   (setf %window-x x 

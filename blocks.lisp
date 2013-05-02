@@ -27,6 +27,8 @@
 
 (in-package :blocky)
 
+(defun cfloat (f) (coerce f 'single-float))
+
 (defun-memo pretty-string (thing)
     (:key #'first :test 'equal :validator #'identity)
   (let ((name (etypecase thing
@@ -80,9 +82,9 @@ Web at:
   (default-events :initform nil)
   (operation :initform :block)
   ;; visual layout
-  (x :initform 0 :documentation "X coordinate of this block's position.")
-  (y :initform 0 :documentation "Y coordinate of this block's position.")
-  (z :initform 0 :documentation "Z coordinate of this block's position.")
+  (x :initform (cfloat 0) :documentation "X coordinate of this block's position.")
+  (y :initform (cfloat 0) :documentation "Y coordinate of this block's position.")
+  (z :initform (cfloat 0) :documentation "Z coordinate of this block's position.")
   (heading :initform 0.0 :documentation "Heading angle of this block, in radians. See also `radian-angle'.")
   (quadtree-node :initform nil)
   ;; 
@@ -837,7 +839,7 @@ See `keys.lisp' for the full table of key and modifier symbols.
   "Move this block to a new (X Y) location."
   (when %quadtree-node (save-location self))
   (quadtree-delete-maybe self)
-  (setf %x x %y y)
+  (setf %x (cfloat x) %y (cfloat y))
   (quadtree-insert-maybe self))
 
 (define-method move-to-* block
@@ -846,7 +848,7 @@ See `keys.lisp' for the full table of key and modifier symbols.
      (z number :default 0))
   "Move this block to a new (X Y Z) location."
   (move-to self x y)
-  (setf %z z))
+  (setf %z (cfloat z)))
 
 (define-method rise block (distance)
   (decf %z distance))
@@ -871,7 +873,7 @@ The KEYWORD must be one of:
 
 (defun radian-angle (degrees)
   "Convert DEGREES to radians."
-  (* degrees (float (/ pi 180))))
+  (* degrees (cfloat (/ pi 180))))
 
 (define-method (turn-left :category :motion) block ((degrees number :default 90))
   "Turn this object's heading to the left DEGREES degrees."
@@ -1604,18 +1606,19 @@ The order is (TOP LEFT RIGHT BOTTOM)."
     (resize-to-image self))
   (with-field-values (x y width height) self
     (values 
-     (float y)
-     (float x)
-     (float (+ x width))
-     (float (+ y height)))))
+     (cfloat y)
+     (cfloat x)
+     (cfloat (+ x width))
+     (cfloat (+ y height)))))
 
 (define-method center-point block ()
   "Return this object's center point as multiple values X and Y."
   (multiple-value-bind (top left right bottom)
-      (bounding-box self)
-    (declare (float top left right bottom) (optimize (speed 3)))
-    (values (* 0.5 (+ left right))
-	    (* 0.5 (+ top bottom)))))
+      (the (values float float float float) (bounding-box self))
+    (let ((half (cfloat 0.5)))
+      (declare (single-float half top left right bottom) (optimize (speed 3)))
+      (values (* half (+ left right))
+	      (* half (+ top bottom))))))
 
 (define-method at block ()
   (values %x %y))
@@ -1657,7 +1660,7 @@ The order is (TOP LEFT RIGHT BOTTOM)."
   nil)
 
 (defun point-in-rectangle-p (x y width height o-top o-left o-width o-height)
-  (declare (float x y width height o-top o-left o-width o-height) (optimize (speed 3)))
+  (declare (single-float x y width height o-top o-left o-width o-height) (optimize (speed 3)))
   (not (or 
 	;; is the top below the other bottom?
 	(<= (+ o-top o-height) y)
@@ -1674,12 +1677,12 @@ The order is (TOP LEFT RIGHT BOTTOM)."
 (define-method colliding-with-rectangle block (o-top o-left o-width o-height)
   ;; you must pass arguments in Y X order since this is TOP then LEFT
   (with-field-values (x y width height) self
-    (point-in-rectangle-p (float x) (float y) (float width) (float height) o-top o-left o-width o-height)))
+    (point-in-rectangle-p (cfloat x) (cfloat y) (cfloat width) (cfloat height) o-top o-left o-width o-height)))
 
 (defun colliding-with-bounding-box (self top left right bottom)
   ;; you must pass arguments in Y X order since this is TOP then LEFT
   (with-field-values (x y width height) self
-    (point-in-rectangle-p (float x) (float y) (float width) (float height)
+    (point-in-rectangle-p (cfloat x) (cfloat y) (cfloat width) (cfloat height)
 			  top left (- right left) (- bottom top))))
 
 ;; (define-method contained-in-bounding-box block (bounding-box)
