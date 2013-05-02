@@ -544,8 +544,7 @@ method call that references a non-existent field will signal a
 	    ;; update plist entry in place
 	    (setf (second p) value)
 	    ;; cons new plist entry
-	    (setf (nthcdr (1- (length f)) f)
-		  (list key value)))
+	    (setf f (nconc (list key value) f)))
 	(values value f))))
 
 ;; (defun plist-fref (f key)
@@ -565,10 +564,12 @@ method call that references a non-existent field will signal a
 
 (defun set-fref (fields key value)
   (etypecase fields
-;    (list (set-plist-fref fields key value))
-    (list (setf (getf fields key) value))
-    (hash-table (setf (gethash key fields) value)))
-  (values value fields))
+    (list (multiple-value-bind (value new-fields)
+	      (set-plist-fref fields key value)
+	    (values value new-fields)))
+;    (list (setf (getf fields key) value))
+    (hash-table (values (setf (gethash key fields) value)
+			fields))))
   
 (defsetf fref set-fref)
 
@@ -622,7 +623,7 @@ The new value overrides any inherited value."
 	  (set-fref (object-fields object) field value)
 	    ;; don't lose new list heads
 	(prog1 value 
-	  (when (listp fields)
+	  (when fields
 	    (setf (object-fields object) fields)))))))
   
 (defsetf field-value set-field-value)
