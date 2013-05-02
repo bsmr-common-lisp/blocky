@@ -527,7 +527,7 @@ method call that references a non-existent field will signal a
   (declare (optimize (speed 3)) (list f))
   (loop (if (eq key (first f)) (return)
 	    (if (null f) (return)
-		(setf f (the list (rest (the list (rest f))))))))
+		(setf f (rest (the list (rest f)))))))
   (if f (second f) *lookup-failure*))
 
 ;; (defun plist-fref (f key)
