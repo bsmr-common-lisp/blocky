@@ -530,13 +530,12 @@ method call that references a non-existent field will signal a
 		(setf f (rest (the list (rest f)))))))
   (if f (second f) *lookup-failure*))
 
-;;     (declare (optimize (speed 3)) (list f) (list p))
+	;; (declare (optimize (speed 3)) (list f) (list p))
 
 (defun set-plist-fref (f key value)
   (if (null f)
       (values value (list key value))
       (let ((p f))
-	;; (declare (optimize (speed 3)) (list f) (list p))
 	(loop (if (eq key (first p)) (return)
 		  (if (null p) (return)
 		      (setf p (rest (the list (rest p)))))))
@@ -547,16 +546,6 @@ method call that references a non-existent field will signal a
 	    (setf f (nconc (list key value) f)))
 	(values value f))))
 
-;; (defun plist-fref (f key)
-;;   ;; (declare ;; (type list f)
-;;   ;; 	   (optimize (speed 3) (safety 0)))
-;;   (let ((v *lookup-failure*))
-;;     (loop while f do
-;;       (if (eq key (first f))
-;; 	  (progn (setf v (second f)) (setf f nil))
-;; 	  (setf f (rest (rest f)))))
-;;     v))
-
 (defun fref (fields key)
   (etypecase fields
     (list (plist-fref fields key))
@@ -564,9 +553,7 @@ method call that references a non-existent field will signal a
 
 (defun set-fref (fields key value)
   (etypecase fields
-    (list (multiple-value-bind (value new-fields)
-	      (set-plist-fref fields key value)
-	    (values value new-fields)))
+    (list (set-plist-fref fields key value))
 ;    (list (setf (getf fields key) value))
     (hash-table (values (setf (gethash key fields) value)
 			fields))))
@@ -623,7 +610,7 @@ The new value overrides any inherited value."
 	  (set-fref (object-fields object) field value)
 	    ;; don't lose new list heads
 	(prog1 value 
-	  (when fields
+	  (when (consp fields)
 	    (setf (object-fields object) fields)))))))
   
 (defsetf field-value set-field-value)
