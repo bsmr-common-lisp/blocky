@@ -900,6 +900,8 @@ slowdown. See also quadtree.lisp")
 
 (define-method draw-programs buffer ())
 
+(define-method after-draw-object buffer (object))
+
 (define-method draw buffer ()
   (with-buffer self
     (with-field-values (objects width focused-block height
@@ -917,10 +919,11 @@ slowdown. See also quadtree.lisp")
 		      :color background-color)))
       ;; now draw the object layer
       (multiple-value-bind (top left right bottom) (window-bounding-box self)
-	(loop for object being the hash-values in objects do
+	(loop for object being the hash-keys in objects do
 	  ;; only draw onscreen objects
 	  (when (colliding-with-bounding-box object top left right bottom)
-	    (draw object))))
+	    (draw object)
+	    (after-draw-object self object))))
       ;; possibly redraw cursor to ensure visibility.
       (when (and (blockyp %cursor) %redraw-cursor)
 	(draw %cursor))
@@ -969,7 +972,7 @@ slowdown. See also quadtree.lisp")
 	;; enable quadtree for collision detection
 	(with-quadtree %quadtree
 	  ;; possibly run the objects
-	  (loop for object being the hash-values in %objects do
+	  (loop for object being the hash-values in objects do
 	    (if (blockyp object) 
 		(progn 
 		  (update object)
