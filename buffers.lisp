@@ -448,9 +448,9 @@
     (with-quadtree %quadtree
       ;; (remove-thing-maybe self object)
       ;; (assert (not (contains-object self object)))
-      (setf (gethash (find-uuid object)
-		     %objects)
-	    (find-uuid object))
+      (let ((uuid (find-uuid object)))
+	(declare (simple-string uuid))
+	(setf (gethash uuid %objects) uuid))
       (when (and (numberp x) (numberp y))
 	(setf (%x object) x
 	      (%y object) y))
@@ -464,11 +464,11 @@
   (destroy-halo object)
   (when (%quadtree-node object)
     (quadtree-delete-maybe object))
-  (remhash (find-uuid object) %objects))
+  (remhash (the simple-string (find-uuid object)) %objects))
 
 (define-method remove-thing-maybe buffer (object)
   (with-buffer self
-    (when (gethash (find-uuid object) %objects)
+    (when (gethash (the simple-string (find-uuid object)) %objects)
       (remove-object self object))
     (when (%parent object)
       (unplug-from-parent object))))
@@ -500,11 +500,11 @@
   (focus-on self object))
 
 (define-method contains-object buffer (object)
-  (gethash (find-uuid object) 
+  (gethash (the simple-string (find-uuid object))
 	   %objects))
 
 (define-method destroy-block buffer (object)
-  (remhash (find-uuid object) %objects))
+  (remhash (the simple-string (find-uuid object)) %objects))
 
 ;;; Buffer-local variables
 
@@ -718,7 +718,7 @@ slowdown. See also quadtree.lisp")
   (with-fields (objects inputs) self
     (loop for thing being the hash-keys of objects do
       (destroy thing)
-      (remhash thing objects))
+      (remhash (the simple-string thing) objects))
     (mapc #'destroy-maybe inputs)
     (mapc #'destroy-maybe %tasks)
     (setf %inputs nil)
@@ -959,7 +959,7 @@ slowdown. See also quadtree.lisp")
 
 (define-method clear-deleted-objects buffer ()
   (loop for object being the hash-keys of %objects 
-	do (unless (blockyp object) (remhash object %objects))))
+	do (unless (blockyp object) (remhash (the simple-string object) %objects))))
 
 (define-method update buffer ()
   (with-field-values (objects drag cursor) self
@@ -972,14 +972,14 @@ slowdown. See also quadtree.lisp")
 	;; enable quadtree for collision detection
 	(with-quadtree %quadtree
 	  ;; possibly run the objects
-	  (loop for object being the hash-values in objects do
+	  (loop for object being the hash-keys in objects do
 	    (if (blockyp object) 
 		(progn 
 		  (update object)
 		  ;; might have been destroyed during update.
 		  (when (blockyp object)
 		    (run-tasks object)))
-		(remhash object %objects)))
+		(remhash (the simple-string object) %objects)))
 	  ;; detect collisions
 	  (loop for object being the hash-values in objects do
 	    (when (blockyp object)

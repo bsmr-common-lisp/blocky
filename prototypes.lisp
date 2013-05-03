@@ -304,11 +304,10 @@ extended argument list ARGLIST."
 ;;; UUID object dictionary
 
 (defun make-uuid ()
-  (uuid:print-bytes 
-   nil 
-   (uuid:make-v4-uuid)))
-;; why doesn't v3 work? produces always same id
-;; (uuid:make-v3-uuid uuid:+namespace-oid+ "blocky.io")))
+  (coerce (uuid:print-bytes 
+	   nil 
+	   (uuid:make-v4-uuid))
+	  'simple-string))
 
 (defvar *database* nil)
 
@@ -321,19 +320,22 @@ extended argument list ARGLIST."
 (defun add-object-to-database (object)
   (when (null *database*)
     (initialize-database))
-  (setf (gethash (object-uuid object)
-		 *database*)
+  (setf (gethash 
+	 (the simple-string (object-uuid object))
+	 *database*)
 	object))
 
 (defun remove-object-from-database (object)
   (let ((total (hash-table-count *database*)))
     (assert (hash-table-p *database*))
     (assert (plusp total))
-    (remhash (find-uuid object) *database*)))
+    (remhash 
+     (the simple-string (find-uuid object))
+     *database*)))
 ;    (assert (> total (hash-table-count *database*)))))
 
 (defun find-object-by-uuid (uuid &optional noerror)
-  (or (gethash uuid *database*)
+  (or (gethash (the simple-string uuid) *database*)
       (unless noerror
 	(error "Cannot find object for uuid ~S" uuid))))
 
