@@ -36,7 +36,7 @@ the object when the method is run.")
 
 (defvar *quadtree-depth* 0)
 
-(defparameter *default-quadtree-depth* 10) 
+(defparameter *default-quadtree-depth* 11) 
  
 (defstruct quadtree 
   objects level
