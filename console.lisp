@@ -777,6 +777,7 @@ becomes larger.")
 We want to process all inputs, update the game state, then update the
 display."
   (let ((fps (make-instance 'sdl:fps-mixed 
+			    :target-frame-rate *frame-rate*
 			    :dt (setf *dt* (truncate (/ 1000 *frame-rate*))))))
     (message "Simulation update time set to ~d milliseconds." *dt*)
     (message "Creating OpenGL window...")
@@ -1184,12 +1185,15 @@ name PROJECT. Returns the pathname if found, otherwise nil."
     ("ttf" :ttf)))
 
 (defun resource-type-from-name (name)
-  (let ((extension (file-name-extension name)))
+  (let ((extension (file-name-extension (if (pathnamep name) (file-namestring name) name))))
     (when extension
       (car (cdr (assoc extension *resource-extensions* :test 'equal))))))
 
 (defun sample-filename-p (name) 
   (eq :sample (resource-type-from-name name)))
+
+(defun image-filename-p (name)
+  (eq :image (resource-type-from-name name)))
 
 (defun index-resource (resource)
   "Add the RESOURCE's record to the resource table.
@@ -1207,7 +1211,7 @@ resource is stored; see also `find-resource'."
     (list :name name 
 	  :type (or type (resource-type-from-name name))
 	  :properties properties
-	  :file (or file name))))
+	  :file (or file (find-project-file *project* name)))))
 
 (defun resource-entries-to-plists (entries)
   (cond
@@ -1237,19 +1241,43 @@ resource is stored; see also `find-resource'."
 
 (defun directory-samples (dir)
   (remove-if-not #'sample-filename-p 
-		 (directory-files dir)))
+		 (cl-fad:list-directory dir)))
 
 (defun project-samples ()
   (directory-samples (find-project-path)))
 
+(defun directory-images (dir)
+  (remove-if-not #'image-filename-p 
+		 (cl-fad:list-directory dir)))
+
+(defun project-images ()
+  (directory-images (find-project-path)))
+
 (defun add-file-resource (filename)
   (add-resource (expand-resource-description 
-		 (list filename))))
+		 (list :name (file-namestring filename)))))
 
-(defun load-all-samples ()
+(defun index-all-samples ()
+  (message "Indexing samples...")
   (dolist (sample (project-samples))
     (add-file-resource sample)))
- 
+
+(defun index-all-images ()
+  (message "Indexing images...")
+  (dolist (image (project-images))
+    (add-file-resource image)))
+
+(defvar *preload-images* nil)
+
+(defvar *preload-samples* nil)
+
+(defun preload-resources () 
+  (when *preload-images* (index-all-images))
+  (when *preload-samples* (index-all-samples))
+  (message "Preloading ~D resources..." (length *pending-resources*))
+  (loop while *pending-resources* do 
+    (load-resource (apply #'make-resource (pop *pending-resources*)))))
+
 (defun find-project-path (&optional (project-name *project*))
   "Return the current project path."
   (assert (not (null project-name)))
@@ -1329,6 +1357,9 @@ resource is stored; see also `find-resource'."
     (dolist (plist *pending-resources*)
       ;; (message "processing. ~A remaining" (length *pending-resources*))
       (index-resource (apply #'make-resource plist)))))
+    ;; ;; possibly preload stuff
+    ;; (when *preload-resources*
+    ;;   (preload-resources))))
 
 (defun play-project (&optional (project *project*))
   (initialize-resource-table)
