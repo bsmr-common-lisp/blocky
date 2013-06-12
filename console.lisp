@@ -1152,13 +1152,14 @@ Directories are searched in list order.")
 name PROJECT. Returns the pathname if found, otherwise nil."
   (let ((dirs *project-directories*))
     (assert (stringp project))
-    (loop 
-      for dir in dirs for path
-	= (cl-fad:directory-exists-p 
-	   (make-pathname
-	    :defaults (cl-fad:pathname-as-directory dir)
-	    :name (project-directory-name project)))
-      when path return path)))
+    (or (loop 
+	  for dir in dirs for path
+	    = (cl-fad:directory-exists-p 
+	       (make-pathname
+		:defaults (cl-fad:pathname-as-directory dir)
+		:name (project-directory-name project)))
+	  when path return path)
+	*current-directory*)))
      ;; (prog1 nil
      ;;   (message "Cannot find project ~s in paths ~S. Try checking your *PROJECTS-DIRECTORIES* settings in the BLOCKY-INIT.LISP configuration file. Continuing..."
      ;; 		project dirs)))))
