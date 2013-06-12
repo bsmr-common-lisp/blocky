@@ -121,13 +121,13 @@ play-sample set-music-volume draw-pixel *user-keyboard-layout*
 *fullscreen* draw-circle set-field-option-value load-project
 field-options current-buffer *frame-rate* set-resource-system-p
 next-method *blx-file-extension* *project* *project-path*
-*window-title* *window-position* restartably *message-logging* shell
+*window-title* *window-position* restartably *message-logging* shell window-pointer-x window-pointer-y
 use-filter set-blending-mode pushf popf define-word forget-word
 forget-all-words execute-word execute execute-string update-parameters
 joystick-axis-pressed-p joystick-axis-value joystick-axis-raw-value
 analog-stick-heading find-heading analog-stick-pressure evalf forth
 *joystick-axis-size* *joystick-axis-dead-zone* *event-hook*
-left-analog-stick-heading left-analog-stick-pressure *message-history*
+left-analog-stick-heading left-analog-stick-pressure *message-history* index-pending-resources 
 right-analog-stick-heading joystick-button-pressed-p
 analog-stick-pressed-p left-analog-stick-pressed-p
 right-analog-stick-pressed-p right-analog-stick-pressure

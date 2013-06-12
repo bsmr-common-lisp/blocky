@@ -52,7 +52,7 @@
 (defun add-resource (plist)
   (assert (and (consp plist)
   	       (keywordp (first plist))))
-  (push plist *pending-resources*))
+  (push (expand-resource-description plist) *pending-resources*))
 
 (defun add-resources (plists)
   (mapcar #'add-resource plists))
@@ -1139,7 +1139,7 @@ binary image.")
      (projects-directory)
      (current-directory)))
 
-(defvar *project-directories* (default-project-directories)
+(defvar *project-directories* nil
   "List of directories where BLOCKY will search for projects.
 Directories are searched in list order.")
 
@@ -1152,23 +1152,16 @@ Directories are searched in list order.")
 name PROJECT. Returns the pathname if found, otherwise nil."
   (let ((dirs *project-directories*))
     (assert (stringp project))
-    (or 
-     (loop 
-       for dir in dirs for path
-	 = (cl-fad:directory-exists-p 
-	    (make-pathname
-	     :defaults (cl-fad:pathname-as-directory dir)
-	     :name (project-directory-name project)))
-       when path return path)
-     (prog1 nil
-       (message "Cannot find project ~s in paths ~S. Try checking your *PROJECTS-DIRECTORIES* settings in the BLOCKY-INIT.LISP configuration file. Continuing..."
-		project dirs)))))
-
-(defun set-resource-pathname (resource)
-  (when (stringp (resource-file resource))
-    (setf (resource-file resource)
-	  (merge-pathnames (resource-file resource)
-			   (find-project-path *project*)))))
+    (loop 
+      for dir in dirs for path
+	= (cl-fad:directory-exists-p 
+	   (make-pathname
+	    :defaults (cl-fad:pathname-as-directory dir)
+	    :name (project-directory-name project)))
+      when path return path)))
+     ;; (prog1 nil
+     ;;   (message "Cannot find project ~s in paths ~S. Try checking your *PROJECTS-DIRECTORIES* settings in the BLOCKY-INIT.LISP configuration file. Continuing..."
+     ;; 		project dirs)))))
 
 (defun file-name-extension (name)
   (let ((pos (position #\. name :from-end t)))
@@ -1195,15 +1188,43 @@ name PROJECT. Returns the pathname if found, otherwise nil."
 (defun image-filename-p (name)
   (eq :image (resource-type-from-name name)))
 
+(defun scrub-filename (name)
+  (let ((pos (search name ".newest")))
+    (if (numberp pos)
+	(subseq name 0 pos)
+	name)))
+
+;; (defun set-resource-pathname (resource)
+;;   (when (stringp (resource-file resource))
+;;     (setf (resource-file resource)
+;; 	  (cl-fad:merge-pathnames-as-file
+;; 	   (find-project-path *project*)
+;; 	   (native-namestring (resource-file resource))))))
+;; 	  ;; (make-pathname 
+;; 	  ;;  :name (resource-file resource)
+;; 	  ;;  :version nil
+;; 	  ;;  :defaults (find-project-path *project*)))))
+
+;;   ;; (when (stringp (resource-file resource))
+;;   ;;   (when (find-project-path *project*)
+;;   ;;     (setf (resource-file resource)
+;;   ;; 	    (cl-fad:merge-pathnames-as-file
+;;   ;; 	     (find-project-path *project*)
+;;   ;; 	     (resource-file resource))))
+;;   ;;   (resource-file resource)))
+
 (defun index-resource (resource)
   "Add the RESOURCE's record to the resource table.
-If a record with that name already exists, it is replaced.  However,
-if the resource is an :alias, just the string name of the target
-resource is stored; see also `find-resource'."
-  (set-resource-pathname resource)
+If a record with that name already exists, it is replaced."
+  (find-resource-pathname resource)
   (setf (gethash (resource-name resource)
-		 *resources*) 
+		 *resources*)
 	resource))
+	;; ;; find the file, if any
+	;; (progn
+	;; (when (resource-properties resource)
+	;;   (setf (resource-properties res)
+	;; 	(resource-properties resource))))))
 
 (defun expand-resource-description (plist)
   (destructuring-bind 
@@ -1211,7 +1232,8 @@ resource is stored; see also `find-resource'."
     (list :name name 
 	  :type (or type (resource-type-from-name name))
 	  :properties properties
-	  :file (or file (find-project-file *project* name)))))
+	  :file (or file name))))
+ ;; (or file (find-project-file *project* name)))))
 
 (defun resource-entries-to-plists (entries)
   (cond
@@ -1253,9 +1275,12 @@ resource is stored; see also `find-resource'."
 (defun project-images ()
   (directory-images (find-project-path)))
 
+(defun native-namestring (name)
+  (ccl:native-translated-namestring name))
+
 (defun add-file-resource (filename)
   (add-resource (expand-resource-description 
-		 (list :name (file-namestring filename)))))
+		 (list :name (native-namestring (file-namestring filename))))))
 
 (defun index-all-samples ()
   (message "Indexing samples...")
@@ -1272,11 +1297,15 @@ resource is stored; see also `find-resource'."
 (defvar *preload-samples* nil)
 
 (defun preload-resources () 
-  (when *preload-images* (index-all-images))
-  (when *preload-samples* (index-all-samples))
-  (message "Preloading ~D resources..." (length *pending-resources*))
-  (loop while *pending-resources* do 
-    (load-resource (apply #'make-resource (pop *pending-resources*)))))
+  ;; (when *preload-images* (index-all-images))
+  ;; (when *preload-samples* (index-all-samples))
+  (let ((count 0))
+    (message "Preloading resources...")
+    (loop for resource being the hash-values in *resources* do
+      (when (member (resource-type resource) '(:image :sample))
+	(load-resource resource)
+	(incf count)))
+    (message "Preloaded ~S resources. Done." count)))
 
 (defun find-project-path (&optional (project-name *project*))
   "Return the current project path."
@@ -1352,11 +1381,14 @@ resource is stored; see also `find-resource'."
   (destructuring-bind (&key (without-database t) with-database) parameters
     (load-project-image project 
 			:without-database without-database
-			:with-database with-database)
+			:with-database with-database)))
+
+(defun index-pending-resources ()
+  (message "Indexing ~S pending resources..." (length *pending-resources*))
+  (loop while *pending-resources* do
+    (index-resource (apply #'make-resource (pop *pending-resources*)))))
+
     ;; load any pending resource defs
-    (dolist (plist *pending-resources*)
-      ;; (message "processing. ~A remaining" (length *pending-resources*))
-      (index-resource (apply #'make-resource plist)))))
     ;; ;; possibly preload stuff
     ;; (when *preload-resources*
     ;;   (preload-resources))))
@@ -1366,9 +1398,10 @@ resource is stored; see also `find-resource'."
   (start-up)
   ;; load objects and buffers from disk
   (load-project-image project)
-    ;; load any pending resource defs
   (dolist (plist *pending-resources*)
-      (index-resource (apply #'make-resource plist)))
+    (index-resource (apply #'make-resource plist)))
+;  (setf *pending-resources* nil)
+    ;; load any pending resource defs
   (start-session)
   (shut-down))
   
@@ -1385,11 +1418,11 @@ resource is stored; see also `find-resource'."
 (defun find-directories (dir)
   (mapcar #'(lambda (s)
 	      (subseq s 0 (1- (length s))))
-	  (mapcar #'namestring
+	  (mapcar #'native-namestring
 		  (directory (concatenate 'string (namestring dir) "/*/")))))
 
 (defun directory-files (dir)
-  (sort (mapcar #'namestring
+  (sort (mapcar #'native-namestring
 		(directory (concatenate 'string (namestring dir) "/*/")))
 	 #'string<))
 
@@ -1417,7 +1450,9 @@ table. File names are relative to the project PROJECT-NAME."
 	    (index-resource-file include-project (find-project-file include-project
 							  (resource-file res))))
 	  ;; we're indexing a single resource.
-	  (index-resource res)))))
+	  (progn (index-resource res)
+		 (when (and system-p (member (resource-type res) '(:image :sample)))
+		   (load-resource res)))))))
 
 	    ;; ;; save the resource name for later autoloading, if needed
 	    ;; (when (getf (resource-properties res) :autoload)
@@ -1629,7 +1664,7 @@ also the documentation for DESERIALIZE."
 (defun load-image-resource (resource)
   "Loads an :IMAGE-type BLX resource from a :FILE on disk."
   (initialize-textures-maybe)
-  (let ((surface (sdl-image:load-image (namestring (resource-file resource))
+  (let ((surface (sdl-image:load-image (native-namestring (resource-file resource))
 				       :alpha 255)))
     (prog1 surface
       ;; cache height and width as properties
@@ -1721,17 +1756,17 @@ control the size of the individual frames or subimages."
 (defun load-ttf-resource (resource)
   (let* ((size (getf (resource-properties resource) :size))
 	 (definition (make-instance 'sdl:ttf-font-definition
-	 			    :filename (namestring (resource-file resource))
+	 			    :filename (native-namestring (resource-file resource))
 	 			    :size size)))
     (sdl:initialise-font definition)))
 
 (defun load-music-resource (resource)
   (when *use-sound*
-    (sdl-mixer:load-music (namestring (resource-file resource)))))
+    (sdl-mixer:load-music (native-namestring (resource-file resource)))))
 
 (defun load-sample-resource (resource)
   (when *use-sound*
-    (let ((chunk (sdl-mixer:load-sample (namestring (resource-file resource)))))
+    (let ((chunk (sdl-mixer:load-sample (native-namestring (resource-file resource)))))
       (prog1 chunk
 	(when (resource-properties resource)
 	  (destructuring-bind (&key volume) (resource-properties resource)
@@ -1785,7 +1820,7 @@ control the size of the individual frames or subimages."
 	(make-database-resource database)
       (message "Saving ~S objects from database into ~A..." 
 	       count
-	       (namestring file))
+	       (native-namestring file))
       (save-resource-file file (list resource))
       (message "Finished saving database into ~A. Continuing..." file))))
       
@@ -1891,6 +1926,9 @@ object (possibly driver-dependent). When a resource is loaded (with
 the resource record.  The return value is stored in the OBJECT field
 of the record.")
 
+(defparameter *preloaded-resource-types* '(:image :sample))
+(defparameter *file-resource-types* '(:ttf :image :sample :music))
+
 ;;; Transforming resources
 
 (defvar *resource-transformation-delimiter* #\:)
@@ -1943,10 +1981,21 @@ of the record.")
 
 ;;; Main user-level functions for finding and loading resources.
 
+(defun find-resource-pathname (resource &optional force)
+  (when (or force (not (pathnamep (resource-file resource))))
+    (when (member (resource-type resource) *file-resource-types*)
+      (setf (resource-file resource)
+	    (make-pathname 
+	     :name (native-namestring 
+		    (or (resource-file resource)
+			(resource-name resource)))
+	     :defaults (find-project-path *project*)
+	     :version nil))
+      (message "Pathname ~S / ~S" (resource-file resource) (native-namestring (resource-file resource))))))
+
 (defun load-resource (resource)
   "Load the driver-dependent object of RESOURCE into the OBJECT field
 so that it can be fed to the console."
-  ;; (message "Attempting to load resource ~S." (resource-name resource))
   (let ((handler (getf *resource-handlers* (resource-type resource))))
     (assert (functionp handler))
     ;; fill in the object field by invoking the handler, if needed
@@ -1955,10 +2004,10 @@ so that it can be fed to the console."
 	    (funcall handler resource))
       (assert (resource-object resource)))
     (when (null (resource-object resource))
-      (error "Failed to load resource ~S." (resource-name resource)))))
-	;; (message "Loaded resource ~S with result type ~S." 
-	;; 	 (resource-name resource)
-	;; 	 (type-of (resource-object resource))))))
+      (error "Failed to load resource ~S." (resource-name resource)))
+	(message "Loaded resource ~S with result type ~S." 
+		 (resource-name resource)
+		 (type-of (resource-object resource)))))
 	   
 ;; (defun make-file-resource-automatically (name &optional properties)
 ;;   (let ((type (resource-type-from-name name)))
@@ -2451,7 +2500,7 @@ of the music."
     (message line)))
 
 (defun load-standard-resources ()
-  (load-project-image "standard"))
+  (load-project "standard"))
 
 (defun start-up ()
   #+linux (do-cffi-loading)
@@ -2474,6 +2523,7 @@ of the music."
 	*random-state* (make-random-state t))
   (reset-forth-interpreter)
   (sdl:init-sdl :video t :audio t :joystick t)
+  (setf *project-directories* (default-project-directories))
 ;  (load-user-init-file) ;; this step may override *project-directories* and so on 
   (initialize-resource-table)
   (initialize-textures-maybe :force)

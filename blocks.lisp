@@ -839,8 +839,8 @@ See `keys.lisp' for the full table of key and modifier symbols.
   "Move this block to a new (X Y) location."
   (when %quadtree-node (save-location self))
   ;; TODO TODO TODO 
-  (error "Check bounding box before delete, don't delete if not needed.")
-  (error "also preload all textures/sounds")
+  ;; (error "Check bounding box before delete, don't delete if not needed.")
+  ;; (error "also preload all textures/sounds")
   (quadtree-delete-maybe self)
   (setf %x (cfloat x) %y (cfloat y))
   (quadtree-insert-maybe self))
