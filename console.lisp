@@ -1385,8 +1385,8 @@ If a record with that name already exists, it is replaced."
 
 (defun index-pending-resources ()
   (message "Indexing ~S pending resources..." (length *pending-resources*))
-  (loop while *pending-resources* do
-    (index-resource (apply #'make-resource (pop *pending-resources*)))))
+  (dolist (plist *pending-resources*)
+    (index-resource (apply #'make-resource plist))))
 
     ;; load any pending resource defs
     ;; ;; possibly preload stuff
@@ -1990,8 +1990,8 @@ of the record.")
 		    (or (resource-file resource)
 			(resource-name resource)))
 	     :defaults (find-project-path *project*)
-	     :version nil))
-      (message "Pathname ~S / ~S" (resource-file resource) (native-namestring (resource-file resource))))))
+	     :version nil)))))
+      ;; (message "Pathname ~S / ~S" (resource-file resource) (native-namestring (resource-file resource))))))
 
 (defun load-resource (resource)
   "Load the driver-dependent object of RESOURCE into the OBJECT field
@@ -2004,10 +2004,10 @@ so that it can be fed to the console."
 	    (funcall handler resource))
       (assert (resource-object resource)))
     (when (null (resource-object resource))
-      (error "Failed to load resource ~S." (resource-name resource)))
-	(message "Loaded resource ~S with result type ~S." 
-		 (resource-name resource)
-		 (type-of (resource-object resource)))))
+      (error "Failed to load resource ~S." (resource-name resource)))))
+	;; (message "Loaded resource ~S with result type ~S." 
+	;; 	 (resource-name resource)
+	;; 	 (type-of (resource-object resource)))))
 	   
 ;; (defun make-file-resource-automatically (name &optional properties)
 ;;   (let ((type (resource-type-from-name name)))
