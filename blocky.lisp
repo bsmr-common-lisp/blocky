@@ -72,20 +72,21 @@ formatted-line-width find-buffer *clipboard* formatted-line-height
 formatted-string-height formatted-string-width get-color create-image
 draw-image blocky edit define-prototype has-field *target* with-target
 define-buffer set-field-options *user-joystick-profile* paste-into
-*garbage-buffers* field-option-value index-resource
-*default-joystick-profile* joystick-profile visit find-project-path
-index-project image-height image-width load-image-resource
-load-lisp-resource *executable* *combine-buffers-destructively*
-*screen-height* cursor *screen-width* blockyp *nominal-screen-width*
-*nominal-screen-height* *gl-screen-width* *gl-screen-height*
-*message-function* dash holding-shift get-button-index
-message-to-standard-output reset-message-function
-*make-prototype-id-package* lturn rturn ticks-per-beat radian-angle
-draw-textured-rectangle default-project-directories
-*resource-handlers* load-resource find-resource find-resource-object
-*colors* *buffer* make-directory-maybe load-user-init-file
-*project-directories* resource-to-plist *osx* *linux* make-resource
-make-object-resource make-event *blocks* bind-event-to-text-insertion
+*garbage-buffers* field-option-value index-resource index-all-images
+index-all-samples *default-joystick-profile* joystick-profile visit
+find-project-path index-project image-height image-width
+load-image-resource load-lisp-resource *executable*
+*combine-buffers-destructively* *screen-height* cursor *screen-width*
+blockyp *nominal-screen-width* *nominal-screen-height*
+*gl-screen-width* *gl-screen-height* *message-function* dash
+holding-shift get-button-index message-to-standard-output
+reset-message-function *make-prototype-id-package* lturn rturn
+ticks-per-beat radian-angle draw-textured-rectangle
+default-project-directories *resource-handlers* load-resource
+find-resource find-resource-object *colors* *buffer*
+make-directory-maybe load-user-init-file *project-directories*
+resource-to-plist *osx* *linux* make-resource make-object-resource
+make-event *blocks* bind-event-to-text-insertion
 make-field-initializer clone make-field-initializer-body
 make-key-modifier-symbol make-key-string normalize-event make-keyword
 make-object queue-head queue-max queue-count *sender*
@@ -121,13 +122,14 @@ play-sample set-music-volume draw-pixel *user-keyboard-layout*
 *fullscreen* draw-circle set-field-option-value load-project
 field-options current-buffer *frame-rate* set-resource-system-p
 next-method *blx-file-extension* *project* *project-path*
-*window-title* *window-position* restartably *message-logging* shell window-pointer-x window-pointer-y
-use-filter set-blending-mode pushf popf define-word forget-word
-forget-all-words execute-word execute execute-string update-parameters
-joystick-axis-pressed-p joystick-axis-value joystick-axis-raw-value
-analog-stick-heading find-heading analog-stick-pressure evalf forth
-*joystick-axis-size* *joystick-axis-dead-zone* *event-hook*
-left-analog-stick-heading left-analog-stick-pressure *message-history* index-pending-resources 
+*window-title* *window-position* restartably *message-logging* shell
+window-pointer-x window-pointer-y use-filter set-blending-mode pushf
+popf define-word forget-word forget-all-words execute-word execute
+execute-string update-parameters joystick-axis-pressed-p
+joystick-axis-value joystick-axis-raw-value analog-stick-heading
+find-heading analog-stick-pressure evalf forth *joystick-axis-size*
+*joystick-axis-dead-zone* *event-hook* left-analog-stick-heading
+left-analog-stick-pressure *message-history* index-pending-resources
 right-analog-stick-heading joystick-button-pressed-p
 analog-stick-pressed-p left-analog-stick-pressed-p
 right-analog-stick-pressed-p right-analog-stick-pressure

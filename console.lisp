@@ -1293,13 +1293,7 @@ If a record with that name already exists, it is replaced."
   (dolist (image (project-images))
     (add-file-resource image)))
 
-(defvar *preload-images* nil)
-
-(defvar *preload-samples* nil)
-
 (defun preload-resources () 
-  ;; (when *preload-images* (index-all-images))
-  ;; (when *preload-samples* (index-all-samples))
   (let ((count 0))
     (message "Preloading resources...")
     (loop for resource being the hash-values in *resources* do
