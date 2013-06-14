@@ -74,8 +74,8 @@ draw-image blocky edit define-prototype has-field *target* with-target
 define-buffer set-field-options *user-joystick-profile* paste-into
 *garbage-buffers* field-option-value index-resource index-all-images
 index-all-samples *default-joystick-profile* joystick-profile visit
-find-project-path index-project image-height image-width
-load-image-resource load-lisp-resource *executable*
+draw-textured-rectangle-* find-project-path index-project image-height
+image-width load-image-resource load-lisp-resource *executable*
 *combine-buffers-destructively* *screen-height* cursor *screen-width*
 blockyp *nominal-screen-width* *nominal-screen-height*
 *gl-screen-width* *gl-screen-height* *message-function* dash
@@ -179,6 +179,6 @@ make-input-accessor-forms *persistent-variables-file-name* duplicate
 persistent-variables-file combine save-variables indicator-size
 draw-indicator load-variables *block-text-colors* defblock capture
 paste-from make-input-accessor-macrolet-clause heading-direction
-make-input-accessor-defun-forms input-reference-p input-block
-input-value *block-bold* *bold* *italic* *block-italic*
+make-input-accessor-defun-forms input-reference-p input-block *default-quadtree-depth*
+input-value *block-bold* *bold* *italic* *block-italic* colliding-with-bounding-box
 define-block-macro))

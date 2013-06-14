@@ -1587,7 +1587,10 @@ also the documentation for DESERIALIZE."
      (gl:tex-parameter :texture-2d :texture-mag-filter :nearest))))
 
 (defun load-texture 
-    (surface &key source-format (internal-format :rgba)
+    (surface &key source-format 
+		  (internal-format :rgba)
+		  (wrap-r :clamp-to-edge)
+		  (wrap-s :clamp-to-edge)
 		  (filter *default-texture-filter*))
   ;; don't make any bogus textures
   (when *gl-window-open-p*
@@ -1596,8 +1599,8 @@ also the documentation for DESERIALIZE."
       ;; set up filtering
       (use-filter filter)
       ;; set wrapping parameters
-      (gl:tex-parameter :texture-2d :texture-wrap-r :clamp-to-edge)
-      (gl:tex-parameter :texture-2d :texture-wrap-s :clamp-to-edge)
+      (gl:tex-parameter :texture-2d :texture-wrap-r wrap-r)
+      (gl:tex-parameter :texture-2d :texture-wrap-s wrap-s)
       ;; convert image data from SDL surface to GL texture
       (sdl-base::with-pixel (pix (sdl:fp surface))
 	(let ((texture-format (ecase (sdl-base::pixel-bpp pix)
@@ -1631,10 +1634,14 @@ also the documentation for DESERIALIZE."
 (defun cache-image-texture (name)
   (initialize-textures-maybe)
   (let* ((resource (find-resource name))
+	 (properties (resource-properties resource))
 	 (surface (resource-object resource))
+	 (wrap-r (getf properties :wrap-r :clamp-to-edge))
+	 (wrap-s (getf properties :wrap-s :clamp-to-edge))
 	 (source-format (getf (resource-properties resource) :format))
 	 (internal-format :rgba)
 	 (texture (load-texture surface
+				:wrap-r wrap-r :wrap-s wrap-s
 				:source-format source-format
 				:internal-format internal-format))
 	 (old-texture (gethash name *textures*)))
@@ -2212,6 +2219,47 @@ of the music."
       (gl:vertex x2 y1 (- 0 z)) ;; z
       (gl:tex-coord 0 0)
       (gl:vertex x y (- 0 z))))) ;; z
+
+
+(defun draw-textured-rectangle-* (x y z width height texture 
+				  &key  (u1 0) (v1 0) (u2 1) (v2 1)
+					(blend :alpha) (opacity 1.0) (vertex-color "white"))
+  (if (null blend)
+      (gl:disable :blend)
+      (progn (enable-texture-blending)	
+	     (set-blending-mode blend)))
+  (gl:bind-texture :texture-2d texture)
+  (set-vertex-color vertex-color opacity)
+  (gl:with-primitive :quads
+    (let ((x1 x)
+	  (x2 (+ x width))
+	  (y1 y)
+	  (y2 (+ y height)))
+      (gl:tex-coord u1 v2)
+      (gl:vertex x1 y2 (- 0 z)) ;; z
+      (gl:tex-coord u2 v2)
+      (gl:vertex x2 y2 (- 0 z)) ;; z
+      (gl:tex-coord u2 v1)
+      (gl:vertex x2 y1 (- 0 z)) ;; z
+      (gl:tex-coord u1 v1)
+      (gl:vertex x1 y1 (- 0 z))))) ;; z
+
+
+;; (defun rectangle (x y width height &optional (u1 0) (v1 0) (u2 1) (v2 1))
+;;   (let* ((w/2 (/ width 2.0))
+;;          (h/2 (/ height 2.0))
+;;          (x1 (- x w/2))
+;;          (x2 (+ x w/2))
+;;          (y1 (- y h/2))
+;;          (y2 (+ y h/2)))
+;;     (gl:tex-coord u1 v2)
+;;     (gl:vertex x1 y1 0)
+;;     (gl:tex-coord u2 v2)
+;;     (gl:vertex x2 y1 0)
+;;     (gl:tex-coord u2 v1)
+;;     (gl:vertex x2 y2 0)
+;;     (gl:tex-coord u1 v1)
+;;     (gl:vertex x1 y2 0)))
 
 (defvar *image-opacity* nil)
 
