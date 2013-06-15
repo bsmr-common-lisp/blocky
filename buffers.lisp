@@ -984,25 +984,25 @@ slowdown. See also quadtree.lisp")
 	  (loop for object being the hash-values in objects do
 	    (when (blockyp object)
 	      (unless (eq :passive (field-value :collision-type object))
-		(quadtree-collide object)))))
+		(quadtree-collide object))))
 	;; update window movement
-	;; (let ((thing (or 
-	;; 		%followed-object
-	;; 		(when (holding-shift) drag)
-	;; 		cursor)))
-	;;   (when (blockyp thing)
-	;;     (glide-follow self thing)
-	;;     (update-window-glide self))))))
-	;; now outside the quadtree,
-	;; possibly update the program layer
-	(with-buffer self
-	  (when *minibuffer-open-p*
-	    (with-quadtree nil
-	      (layout self)
-	      (layout-program-objects self)
-	      (update-program-objects self)
-	      (when *minibuffer* (update *minibuffer*))
-	      (clear-deleted-program-objects self))))))))
+	(let ((thing (or 
+			%followed-object
+			(when (holding-shift) drag)
+			cursor)))
+	  (when (blockyp thing)
+	    (glide-follow self thing)
+	    (update-window-glide self)))
+	  ;; now outside the quadtree,
+	  ;; possibly update the program layer
+	  (with-buffer self
+	    (when *minibuffer-open-p*
+	      (with-quadtree nil
+		(layout self)
+		(layout-program-objects self)
+		(update-program-objects self)
+		(when *minibuffer* (update *minibuffer*))
+		(clear-deleted-program-objects self)))))))))
     
 (define-method evaluate buffer ()
   (prog1 self
