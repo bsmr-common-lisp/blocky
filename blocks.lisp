@@ -1680,7 +1680,8 @@ The order is (TOP LEFT RIGHT BOTTOM)."
 (define-method colliding-with-rectangle block (o-top o-left o-width o-height)
   ;; you must pass arguments in Y X order since this is TOP then LEFT
   (with-field-values (x y width height) self
-    (point-in-rectangle-p (cfloat x) (cfloat y) (cfloat width) (cfloat height) o-top o-left o-width o-height)))
+    (point-in-rectangle-p (cfloat x) (cfloat y) (cfloat width) (cfloat height) 
+			  (cfloat o-top) (cfloat o-left) (cfloat o-width) (cfloat o-height))))
 
 (defun colliding-with-bounding-box (self top left right bottom)
   ;; you must pass arguments in Y X order since this is TOP then LEFT
