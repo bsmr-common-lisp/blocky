@@ -776,11 +776,11 @@ becomes larger.")
   "Initialize the console, open a window, and play.
 We want to process all inputs, update the game state, then update the
 display."
-  (let ((fps (make-instance 'sdl:fps-mixed 
-			    :target-frame-rate *frame-rate*
-			    :dt (setf *dt* (truncate (/ 1000 *frame-rate*))))))
-    (message "Simulation update time set to ~d milliseconds." *dt*)
-    (message "Creating OpenGL window...")
+  (let ((fps (make-instance 'sdl:fps-fixed 
+			    :target-frame-rate *frame-rate*)))
+;			    :dt (setf *dt* (truncate (/ 1000 *frame-rate*))))))
+;    (message "Simulation update time set to ~d milliseconds." *dt*)
+   (message "Creating OpenGL window...")
     (cond (*fullscreen*
 	   (sdl:window *screen-width* *screen-height*
 		       :fps fps 
@@ -893,7 +893,8 @@ display."
 	     ;; in sbcl using the :fd-handler swank:*communication-style*
 	     #+(and sbcl (not sb-thread)) (restartably
 					   (sb-sys:serve-all-events 0))	 
-	     (sdl:with-timestep (do-update))
+	     (do-update)
+	     ;; (sdl:with-timestep (do-update))
 	     ;; load pending resources
 	     ;; (dolist (plist *pending-resources*)
 	     ;;   (index-resource (apply #'make-resource plist)))
@@ -903,6 +904,7 @@ display."
 	       (gl:clear)
 	       (draw-blocks)
 	       (gl:flush)
+	       (gl:finish)
 	       (sdl:update-display))))))
 
 ;;; The user configuration file
