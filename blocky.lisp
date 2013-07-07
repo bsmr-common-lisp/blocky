@@ -80,13 +80,13 @@ image-width load-image-resource load-lisp-resource *executable*
 blockyp *nominal-screen-width* *nominal-screen-height*
 *gl-screen-width* *gl-screen-height* *message-function* dash
 holding-shift get-button-index message-to-standard-output
-reset-message-function *make-prototype-id-package* lturn rturn
-ticks-per-beat radian-angle draw-textured-rectangle
-default-project-directories *resource-handlers* load-resource
-find-resource find-resource-object *colors* *buffer*
-make-directory-maybe load-user-init-file *project-directories*
-resource-to-plist *osx* *linux* make-resource make-object-resource
-make-event *blocks* bind-event-to-text-insertion
+*cached-quadtree* rebuild-quadtree rebuild-node reset-message-function
+*make-prototype-id-package* lturn rturn ticks-per-beat radian-angle
+draw-textured-rectangle default-project-directories
+*resource-handlers* load-resource find-resource find-resource-object
+*colors* *buffer* make-directory-maybe load-user-init-file
+*project-directories* resource-to-plist *osx* *linux* make-resource
+make-object-resource make-event *blocks* bind-event-to-text-insertion
 make-field-initializer clone make-field-initializer-body
 make-key-modifier-symbol make-key-string normalize-event make-keyword
 make-object queue-head queue-max queue-count *sender*
@@ -179,6 +179,6 @@ make-input-accessor-forms *persistent-variables-file-name* duplicate
 persistent-variables-file combine save-variables indicator-size
 draw-indicator load-variables *block-text-colors* defblock capture
 paste-from make-input-accessor-macrolet-clause heading-direction
-make-input-accessor-defun-forms input-reference-p input-block *default-quadtree-depth*
-input-value *block-bold* *bold* *italic* *block-italic* colliding-with-bounding-box
-define-block-macro))
+make-input-accessor-defun-forms input-reference-p input-block
+*default-quadtree-depth* input-value *block-bold* *bold* *italic*
+*block-italic* colliding-with-bounding-box define-block-macro))

@@ -22,6 +22,8 @@
 
 (in-package :blocky)
 
+(defvar *cached-quadtree* nil)
+
 (defvar *quadtree* nil)
 
 (defvar *buffer* nil
@@ -130,6 +132,34 @@ the object when the method is run.")
 			 :northeast (build-quadtree (northeast-quadrant bounding-box) depth)
 			 :southwest (build-quadtree (southwest-quadrant bounding-box) depth)
 			 :southeast (build-quadtree (southeast-quadrant bounding-box) depth))))))
+
+(defun rebuild-node (node top left right bottom)
+  (when node
+    (prog1 node
+      (setf (quadtree-top node) (cfloat top))
+      (setf (quadtree-left node) (cfloat left))
+      (setf (quadtree-right node) (cfloat right))
+      (setf (quadtree-bottom node) (cfloat bottom))
+      (setf (quadtree-objects node) nil)
+      (rebuild-node (quadtree-northeast node)
+		    top (cfloat (/ (+ left right) 2))
+		    right (cfloat (/ (+ top bottom) 2)))
+      (rebuild-node (quadtree-southeast node)
+		    (cfloat (/ (+ top bottom) 2)) (cfloat (/ (+ left right) 2))
+		    right bottom)
+      (rebuild-node (quadtree-northwest node)
+		    top left
+		    (cfloat (/ (+ left right) 2)) (cfloat (/ (+ top bottom) 2)))
+      (rebuild-node (quadtree-southwest node)
+		    (cfloat (/ (+ top bottom) 2)) left
+		    (cfloat (/ (+ left right) 2)) bottom))))
+
+(defun rebuild-quadtree (bounding-box &optional depth)
+  (destructuring-bind (top left right bottom) bounding-box
+    (setf *cached-quadtree*
+	  (rebuild-node (or *cached-quadtree* 
+			    (build-quadtree bounding-box depth))
+			top left right bottom))))
 
 (defun quadtree-search (top left right bottom &optional (node *quadtree*))
   "Return the smallest quadrant enclosing TOP LEFT RIGHT BOTTOM at or below

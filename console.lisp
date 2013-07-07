@@ -2556,6 +2556,8 @@ of the music."
   (print-copyright-notice)
   (setf *blocks* nil
 	*buffer* nil
+	*cached-quadtree* nil
+	*quadtree* nil
  	*project* nil
 	*notification* nil
 	*clipboard* nil
