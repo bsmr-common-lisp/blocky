@@ -2588,7 +2588,7 @@ of the music."
 (defun shut-down ()
   ;; delete any cached textures and surfaces
   (clear-text-image-cache)
-  (delete-all-textures)
+  ;; (delete-all-textures)
   (purge-all-objects)
   (delete-all-resources)
   (setf *buffers* nil)
