@@ -1626,12 +1626,13 @@ also the documentation for DESERIALIZE."
     (setf *textures* (make-hash-table :test 'equal))))
 
 (defun delete-all-textures ()
-  (maphash #'(lambda (name texture)
-	       (let ((resource (find-resource name)))
-		 (setf (resource-object resource) nil))
-	       (gl:delete-textures (list texture)))
-	   *textures*)
-  (initialize-textures-maybe :force))
+  (when *textures*
+    (maphash #'(lambda (name texture)
+		 (let ((resource (find-resource name)))
+		   (setf (resource-object resource) nil))
+		 (gl:delete-textures (list texture)))
+	     *textures*)
+    (initialize-textures-maybe :force)))
 
 (defun cache-image-texture (name)
   (initialize-textures-maybe)
