@@ -2568,6 +2568,8 @@ of the music."
 	*updates* 0
 	*resizable* t
 	*random-state* (make-random-state t))
+  (clear-text-image-cache)
+  (delete-all-textures)
   (reset-forth-interpreter)
   (sdl:init-sdl :video t :audio t :joystick t)
   (setf *project-directories* (default-project-directories))
@@ -2587,7 +2589,7 @@ of the music."
 
 (defun shut-down ()
   ;; delete any cached textures and surfaces
-  (clear-text-image-cache)
+  ;; (clear-text-image-cache)
   ;; (delete-all-textures)
   (purge-all-objects)
   (delete-all-resources)
