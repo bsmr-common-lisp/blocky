@@ -291,6 +291,7 @@ initialized with BLOCKS as inputs."
   (setf %garbagep t)
   (when %quadtree-node 
     (quadtree-delete self %quadtree-node))
+  (setf %quadtree-node nil)
   (let (uuid (find-uuid self))
     (remove-object-from-database self)
     (prog1 t

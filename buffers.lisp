@@ -722,6 +722,7 @@ slowdown. See also quadtree.lisp")
     (mapc #'destroy-maybe inputs)
     (mapc #'destroy-maybe %tasks)
     (setf %inputs nil)
+    (setf %quadtree nil)
     (block%destroy self)))
 
 (defun combine (buffer1 buffer2)
