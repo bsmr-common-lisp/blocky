@@ -1,3 +1,6 @@
+Additional LISPBUILDER-SDL licensing information available at:
+http://code.google.com/p/lispbuilder/wiki/License
+
 CFFI SDL Wrapper and sample code
 (C)2006 Justin Heyes-Jones
 
