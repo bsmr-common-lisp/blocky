@@ -1278,8 +1278,9 @@ If a record with that name already exists, it is replaced."
 (defun project-images ()
   (directory-images (find-project-path)))
 
-(defun native-namestring (name)
-  (ccl:native-translated-namestring name))
+(defun native-namestring (name) 
+  #+ccl (ccl:native-translated-namestring name)
+  #+sbcl (sb-ext:native-namestring name))
 
 (defun add-file-resource (filename)
   (add-resource (expand-resource-description 
