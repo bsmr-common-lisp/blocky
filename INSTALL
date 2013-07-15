@@ -1,74 +1,20 @@
 This is the INSTALL file for Blocky.
 
-This file contains help on getting Blocky (or an application built
-with it) to run on your system. 
-
-If you are a Windows user, there's no reason to read this file,
-because everything is self-contained.
+This file also gives you instructions on how to download Blocky and
+compile it from the source code. 
 
 If you are on GNU/Linux, you must install certain libraries through
 your distributions' software installer: namely, sdl, sdl-image,
-sdl-mixer, and sdl-ttf. You may additionally need to install the
+sdl-mixer, sdl-gfx, and sdl-ttf. You may additionally need to install the
 corresponding *-dev versions of those packages.
 
-This file also gives you instructions on how to download Blocky and
-compile it from the source code. Unless you are planning to do this,
-you can safely ignore the rest of this file.
-
-This should be straightforward on Linux; Blocky also works on Windows
-and Mac, but compiling Blocky on those platforms may require
-additional steps (such as installing the included SDL binary DLL's in
-the included win32/ subfolder of the Blocky source directory.)
-
-More instructions for Mac and Windows will be available soon.
-
-1. System Requirements for building Blocky (All Platforms)
-
-    - A Common Lisp implementation such as Steel Bank Common Lisp (see
-      platform-specific notes below for suggestions on SBCL; CLISP and
-      CCL have also been reported to work.)
- 
-      A recent release of SBCL from sbcl.org is recommended. Please
-      see: http://sbcl.org/platform-table.html
-
-    - A working OpenGL implementation. Hardware acceleration is
-      strongly recommended. (Most fairly recent Mac and Windows
-      machines will have OpenGL drivers already, but GNU/Linux users
-      will need proper hardware drivers.
-
-    - Git, a distributed version control system client.
-      http://git-scm.com/
-
-    - (optional) A text editor (preferably Emacs or Vim;
-      http://www.gnu.org/software/emacs) If you use Emacs check out
-      SLIME (you may need the CVS version) and if you use Vim check
-      out SLIMV.
-
-1a. System Requirements (Linux)
-
-   You must have the SDL (Simple Direct Media Layer) libraries
-   installed on your system. How to do this is beyond the scope of
-   this document. See http://www.libsdl.org for more information.
-   Your Linux distribution will most likely have SDL packages for sdl,
-   sdl-image, sdl-mixer, and sdl-ttf, all of which are required for to
-   compile Blocky. You may also need to install the sdl-*-dev packages
-   corresponding to each.
-
-1b. System Requirements (Windows)
-
-   You will need a Windows version of SBCL from http://sbcl.org
-
-1c. System Requirements (Macintosh)
-
-   [THIS SECTION REMAINS TO BE WRITTEN]
-
-2. If you have not already done so, download Blocky:
+1. If you have not already done so, download Blocky:
   
    mkdir ~/src
    cd ~/src
    git clone git://github.com/dto/blocky.git 
 
-3. Install Quicklisp
+2. Install Quicklisp
     
     http://www.quicklisp.org/ It takes only a few moments to install
     Quicklisp, and this is the best way to download and install all
@@ -78,30 +24,8 @@ More instructions for Mac and Windows will be available soon.
     Quicklisp to your Lisp startup file with (ql:add-to-init-file).
     Doing this will make Quicklisp load automatically when you start
     your Lisp implementation.
-
-4. (OPTIONAL) Configure project folders
-
-   By default, new projects are created in ~/.blocky 
-
-   The distribution contains a text configuration file called
-   BLOCKY-INIT.LISP; by default Blocky looks for it in the same
-   directory as the executable.
-
-   To run projects, Blocky needs a line like this added to the init
-   file so that it will know where to find them.
-
-   (setf blocky:*project-directories* '(#P"~/src/blocky/" #P"~/projects/"))
-
-   The first item should be the pathname of wherever you installed the
-   Blocky source tree. This is auto-detected as the current directory
-   if you don't set it. NOTE: These must be pathnames (prefixed with
-   #P) and must contain a trailing slash.
-
-   To use your home directory, 
-
-   (setf *project-directories* (list #P"~/src/blocky/" #P"~/.blocky/" #P"~/"))
    
-5. At the shell, 
+3. At the shell, 
 
      cd ~/src/blocky    # or wherever you installed it...
      sbcl       
@@ -118,20 +42,18 @@ More instructions for Mac and Windows will be available soon.
       (push #p"/path/to/blocky/" asdf:*central-registry*)
       (asdf:load-system :blocky)
 
-6.   The work-in-progress game 2X0NG is written with Blocky, and can
-     be downloaded via git:
+4.  My game "2x0ng" is written with Blocky, and can be downloaded via git:
 
       	  git clone git@github.com:dto/2x0ng.git
 
       Then in SBCL:
       
-      (push #p"~/2x0ng/" asdf:*central-registry*)
+      (push #P"~/src/2x0ng/" asdf:*central-registry*) 
       (asdf:load-system :2x0ng)
+      (setf blocky:*user-projects-directory* #P"~/src/")
       (2x0ng:2x0ng)
 
-      Then, in-game: Arrow keys to move, Z to fire, Control R to reset
-
-7. Getting help and reporting bugs 
+5. Getting help and reporting bugs 
 
    When reporting bugs, please use the issue reporting system at
    Github if possible: https://github.com/dto/blocky/issues
@@ -139,7 +61,7 @@ More instructions for Mac and Windows will be available soon.
    If not possible or if other questions arise, you can email or IRC
    me as follows:
 
-   dto@ioforms.org 
+   dto@blocky.io
 
    You can also try the IRC channel:
    
