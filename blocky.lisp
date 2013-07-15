@@ -87,33 +87,33 @@ draw-textured-rectangle default-project-directories
 *colors* *buffer* make-directory-maybe load-user-init-file
 *project-directories* resource-to-plist *osx* *linux* make-resource
 make-object-resource make-event *blocks* bind-event-to-text-insertion
-make-field-initializer clone make-field-initializer-body
-make-key-modifier-symbol make-key-string normalize-event make-keyword
-make-object queue-head queue-max queue-count *sender*
-field-reference-p null-next object-eq *x11-color-data* object-name
-object-parent send send-super send-queue self opposite-direction
-opposite-heading object-address-string object step-in-direction
-define-resource direction-to plasma-rect subdivide-rect render-plasma
-add-hook run-hook queue-tail make-resource-link save-resource
-on-screen-p save-project-image *system* *defined-resources*
-save-project save-everything with-input-values with-inputs select-all
-*export-formats* clear-selection export-archive *use-texture-blending*
-defresource export-application paste-as-new-buffer
-*default-texture-filter* export-project make-queue queue unqueue
-*font-texture-filter* queue-message queued-messages-p unqueue-message
-send-queue field-value random-direction random-choose *resources*
-load-font-resource save-object-resource initialize%super
-draw-string-solid read-box initialize-resource-table percent-of-time
-render-formatted-paragraph make-formatted-string draw-string-shaded
-set-blending-mode render-formatted-string render-formatted-line
-resource font-text-width write-sexp-to-file with-message-sender
-*message-sender* read-sexp-from-file with-fields with-field-values
-write-blx *grammar* one-of left-hand-side right-hand-side expansions
-generate send-event-to-blocks play-music halt-music seek-music
-play-project *joystick-mapping* play initialize-sound
-*generic-joystick-mapping* *joystick-button-symbols*
-draw-resource-image *event-handler-function* *use-sound* midpoint
-send-event self get-some-object-name
+*user-projects-directory* make-field-initializer clone
+make-field-initializer-body make-key-modifier-symbol make-key-string
+normalize-event make-keyword make-object queue-head queue-max
+queue-count *sender* field-reference-p null-next object-eq
+*x11-color-data* object-name object-parent send send-super send-queue
+self opposite-direction opposite-heading object-address-string object
+step-in-direction define-resource direction-to plasma-rect
+subdivide-rect render-plasma add-hook run-hook queue-tail
+make-resource-link save-resource on-screen-p save-project-image
+*system* *defined-resources* save-project save-everything
+with-input-values with-inputs select-all *export-formats*
+clear-selection export-archive *use-texture-blending* defresource
+export-application paste-as-new-buffer *default-texture-filter*
+export-project make-queue queue unqueue *font-texture-filter*
+queue-message queued-messages-p unqueue-message send-queue field-value
+random-direction random-choose *resources* load-font-resource
+save-object-resource initialize%super draw-string-solid read-box
+initialize-resource-table percent-of-time render-formatted-paragraph
+make-formatted-string draw-string-shaded set-blending-mode
+render-formatted-string render-formatted-line resource font-text-width
+write-sexp-to-file with-message-sender *message-sender*
+read-sexp-from-file with-fields with-field-values write-blx *grammar*
+one-of left-hand-side right-hand-side expansions generate
+send-event-to-blocks play-music halt-music seek-music play-project
+*joystick-mapping* play initialize-sound *generic-joystick-mapping*
+*joystick-button-symbols* draw-resource-image *event-handler-function*
+*use-sound* midpoint send-event self get-some-object-name
 transform-declaration-field-descriptor no-such-field
 find-projects-in-directory goal directory-is-project-p
 find-directories find-all-projects *project* transform-tree

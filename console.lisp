@@ -1138,8 +1138,10 @@ binary image.")
 (defun default-project-directories () 
     (list 
      (blocky-directory)
-     (projects-directory)
+     (or *user-projects-directory* (projects-directory))
      (current-directory)))
+
+(defvar *user-projects-directory* nil)
 
 (defvar *project-directories* nil
   "List of directories where BLOCKY will search for projects.
