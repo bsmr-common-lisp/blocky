@@ -22,16 +22,17 @@ corresponding *-dev versions of those packages.
 
     After installing quicklisp you will see a notice about adding
     Quicklisp to your Lisp startup file with (ql:add-to-init-file).
+
     Doing this will make Quicklisp load automatically when you start
-    your Lisp implementation.
+    your Lisp implementation, but it isn't strictly required.
    
 3. At the shell, 
 
      cd ~/src/blocky    # or wherever you installed it...
      sbcl       
 
-   Once SBCL is started, enter (or cut and paste) and execute the
-   following Lisp expressions one at a time:
+   Once SBCL is started, enter and execute the following Lisp
+   expressions one at a time:
 
       ;; load dependencies via Quicklisp
       (ql:quickload 
@@ -39,7 +40,7 @@ corresponding *-dev versions of those packages.
 	 :lispbuilder-sdl-image :uuid :cl-opengl :cl-fad))
 
       ;; compile and load Blocky
-      (push #p"/path/to/blocky/" asdf:*central-registry*)
+      (push #P"~/src/blocky/" asdf:*central-registry*)
       (asdf:load-system :blocky)
 
 4.  My game "2x0ng" is written with Blocky, and can be downloaded via git:
